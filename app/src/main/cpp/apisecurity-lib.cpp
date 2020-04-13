@@ -11,8 +11,8 @@
 #define LOGF(...)  __android_log_print(ANDROID_LOG_FATAL,LOG,__VA_ARGS__)
 
 //此处改为你的APP签名
-#define SHA1 "a8e3d91a4f77dd7ccb8d43ee5046a4b6833f4785"//区分小写
-//#define SHA1 "04c1411b0662acd9e4aa300559677e5f106a5255"
+//#define SHA1 "a8e3d91a4f77dd7ccb8d43ee5046a4b6833f4785"//区分小写
+#define SHA1 "04c1411b0662acd9e4aa300559677e5f106a5255"
 #define ALGORITHM_SHA1 "SHA1"
 #define ALGORITHM_MD5 "MD5"
 
