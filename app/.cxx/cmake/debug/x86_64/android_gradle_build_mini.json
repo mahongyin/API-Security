@@ -1,0 +1,19 @@
+{
+  "buildFiles": [
+    "E:\\android-sdk-windows\\ndk\\21.0.6113669\\build\\cmake\\platforms.cmake",
+    "D:\\AProject\\Mahy\\Android-API-Security-master\\app\\CMakeLists.txt",
+    "E:\\android-sdk-windows\\ndk\\21.0.6113669\\build\\cmake\\android.toolchain.cmake"
+  ],
+  "cleanCommands": [
+    "E:\\android-sdk-windows\\cmake\\3.10.2.4988404\\bin\\ninja.exe -C \"D:\\AProject\\Mahy\\Android-API-Security-master\\app\\.cxx\\cmake\\debug\\x86_64\" clean"
+  ],
+  "buildTargetsCommand": "E:\\android-sdk-windows\\cmake\\3.10.2.4988404\\bin\\ninja.exe  -C \"D:\\AProject\\Mahy\\Android-API-Security-master\\app\\.cxx\\cmake\\debug\\x86_64\" {LIST_OF_TARGETS_TO_BUILD}",
+  "libraries": {
+    "apisecurity-lib-Debug-x86_64": {
+      "artifactName": "apisecurity-lib",
+      "buildCommand": "E:\\android-sdk-windows\\cmake\\3.10.2.4988404\\bin\\ninja.exe -C \"D:\\AProject\\Mahy\\Android-API-Security-master\\app\\.cxx\\cmake\\debug\\x86_64\" apisecurity-lib",
+      "abi": "x86_64",
+      "output": "D:\\AProject\\Mahy\\Android-API-Security-master\\app\\build\\intermediates\\cmake\\debug\\obj\\x86_64\\libapisecurity-lib.so"
+    }
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "stringTable": {
+    "0": "D:/AProject/Mahy/Android-API-Security-master/app/.cxx/cmake/release/x86_64",
+    "1": "--target=x86_64-none-linux-android21 --gcc-toolchain=E:/android-sdk-windows/ndk/21.0.6113669/toolchains/llvm/prebuilt/windows-x86_64 --sysroot=E:/android-sdk-windows/ndk/21.0.6113669/toolchains/llvm/prebuilt/windows-x86_64/sysroot -Dapisecurity_lib_EXPORTS -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security -O2 -DNDEBUG -fPIC"
+  },
+  "buildFiles": [
+    "E:\\android-sdk-windows\\ndk\\21.0.6113669\\build\\cmake\\platforms.cmake",
+    "D:\\AProject\\Mahy\\Android-API-Security-master\\app\\CMakeLists.txt",
+    "E:\\android-sdk-windows\\ndk\\21.0.6113669\\build\\cmake\\android.toolchain.cmake"
+  ],
+  "cleanCommands": [
+    "E:\\android-sdk-windows\\cmake\\3.10.2.4988404\\bin\\ninja.exe -C \"D:\\AProject\\Mahy\\Android-API-Security-master\\app\\.cxx\\cmake\\release\\x86_64\" clean"
+  ],
+  "buildTargetsCommand": "E:\\android-sdk-windows\\cmake\\3.10.2.4988404\\bin\\ninja.exe  -C \"D:\\AProject\\Mahy\\Android-API-Security-master\\app\\.cxx\\cmake\\release\\x86_64\" {LIST_OF_TARGETS_TO_BUILD}",
+  "libraries": {
+    "apisecurity-lib-Release-x86_64": {
+      "buildCommand": "E:\\android-sdk-windows\\cmake\\3.10.2.4988404\\bin\\ninja.exe -C \"D:\\AProject\\Mahy\\Android-API-Security-master\\app\\.cxx\\cmake\\release\\x86_64\" apisecurity-lib",
+      "buildType": "release",
+      "toolchain": "3081341266",
+      "abi": "x86_64",
+      "artifactName": "apisecurity-lib",
+      "files": [
+        {
+          "src": "D:\\AProject\\Mahy\\Android-API-Security-master\\app\\src\\main\\cpp\\apisecurity-lib.cpp",
+          "flagsOrdinal": 1,
+          "workingDirectoryOrdinal": 0
+        }
+      ],
+      "headers": [],
+      "output": "D:\\AProject\\Mahy\\Android-API-Security-master\\app\\build\\intermediates\\cmake\\release\\obj\\x86_64\\libapisecurity-lib.so"
+    }
+  },
+  "toolchains": {
+    "3081341266": {
+      "cppCompilerExecutable": "E:\\android-sdk-windows\\ndk\\21.0.6113669\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe"
+    }
+  },
+  "cFileExtensions": [],
+  "cppFileExtensions": [
+    "cpp"
+  ]
+}

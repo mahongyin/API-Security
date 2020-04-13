@@ -1,0 +1,3 @@
+D:/AProject/Mahy/API-Security/app/.cxx/cmake/debug/x86/CMakeFiles/apisecurity-lib.dir
+D:/AProject/Mahy/API-Security/app/.cxx/cmake/debug/x86/CMakeFiles/edit_cache.dir
+D:/AProject/Mahy/API-Security/app/.cxx/cmake/debug/x86/CMakeFiles/rebuild_cache.dir

@@ -1,0 +1,42 @@
+{
+  "stringTable": {
+    "0": "D:/AProject/Mahy/API-Security/app/.cxx/cmake/debug/x86",
+    "1": "--target=i686-none-linux-android16 --gcc-toolchain=E:/android-sdk-windows/ndk/21.0.6113669/toolchains/llvm/prebuilt/windows-x86_64 --sysroot=E:/android-sdk-windows/ndk/21.0.6113669/toolchains/llvm/prebuilt/windows-x86_64/sysroot -Dapisecurity_lib_EXPORTS -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -mstackrealign -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security -O0 -fno-limit-debug-info -fPIC"
+  },
+  "buildFiles": [
+    "E:\\android-sdk-windows\\ndk\\21.0.6113669\\build\\cmake\\platforms.cmake",
+    "D:\\AProject\\Mahy\\API-Security\\app\\CMakeLists.txt",
+    "E:\\android-sdk-windows\\ndk\\21.0.6113669\\build\\cmake\\android.toolchain.cmake"
+  ],
+  "cleanCommands": [
+    "E:\\android-sdk-windows\\cmake\\3.10.2.4988404\\bin\\ninja.exe -C \"D:\\AProject\\Mahy\\API-Security\\app\\.cxx\\cmake\\debug\\x86\" clean"
+  ],
+  "buildTargetsCommand": "E:\\android-sdk-windows\\cmake\\3.10.2.4988404\\bin\\ninja.exe  -C \"D:\\AProject\\Mahy\\API-Security\\app\\.cxx\\cmake\\debug\\x86\" {LIST_OF_TARGETS_TO_BUILD}",
+  "libraries": {
+    "apisecurity-lib-Debug-x86": {
+      "buildCommand": "E:\\android-sdk-windows\\cmake\\3.10.2.4988404\\bin\\ninja.exe -C \"D:\\AProject\\Mahy\\API-Security\\app\\.cxx\\cmake\\debug\\x86\" apisecurity-lib",
+      "buildType": "debug",
+      "toolchain": "3081341266",
+      "abi": "x86",
+      "artifactName": "apisecurity-lib",
+      "files": [
+        {
+          "src": "D:\\AProject\\Mahy\\API-Security\\app\\src\\main\\cpp\\apisecurity-lib.cpp",
+          "flagsOrdinal": 1,
+          "workingDirectoryOrdinal": 0
+        }
+      ],
+      "headers": [],
+      "output": "D:\\AProject\\Mahy\\API-Security\\app\\build\\intermediates\\cmake\\debug\\obj\\x86\\libapisecurity-lib.so"
+    }
+  },
+  "toolchains": {
+    "3081341266": {
+      "cppCompilerExecutable": "E:\\android-sdk-windows\\ndk\\21.0.6113669\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe"
+    }
+  },
+  "cFileExtensions": [],
+  "cppFileExtensions": [
+    "cpp"
+  ]
+}
