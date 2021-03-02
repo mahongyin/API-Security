@@ -2,7 +2,7 @@ package cn.android.sample;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.view.View;
 import android.widget.TextView;
 
@@ -23,8 +23,10 @@ public class MainActivity extends AppCompatActivity {
 
         if(APISecurity.init(this)){
             tv.setText("初始化ok");
+        }else {
+            tv.setText("初始化fail");
         }
-
+        APISecurity.verify(this);
         findViewById(R.id.btnTest).setOnClickListener(new View.OnClickListener() {
             @SuppressLint("SetTextI18n")
             @Override
@@ -39,4 +41,9 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        APISecurity.detectedDynamicDebug();
+    }
 }

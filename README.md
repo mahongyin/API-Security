@@ -55,3 +55,11 @@ Android API Security(.so)，安卓APP/API安全加密so库，防二次打包，�
  String val = "POST https://www.xxx.com/login?id=1&pwd=xxx......";
  String sign = MGAPISecurity.sign(aptStr)
 ```
+ App.hook(context);//hook签名验证
+//在这里 重置PackageManager 只要在验证前重置即可
+ // AppSigning.resetPackageManager(getBaseContext());再hook之后 验证签名之前重置即可 获取真实签名
+
+ APISecurity.init(this)//验证三步走
+ 1.验证签名是否符合自己预设
+ 2.验证包名
+ 3验证apk源文件签名信息

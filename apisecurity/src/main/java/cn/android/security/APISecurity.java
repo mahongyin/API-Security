@@ -4,14 +4,30 @@ import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.Signature;
 import android.os.Build;
 import android.os.Debug;
+import android.text.TextUtils;
+import android.util.DisplayMetrics;
 import android.util.Log;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,97 +47,108 @@ public class APISecurity {
 
     /**
      * 被Native调用的Java方法
-     *
-     * @param msg
      */
     public void javaMethod(String msg) {
-        Log.e("错误代码",msg);
+        Log.e("错误代码", msg);
 //        System.exit(1);
     }
 
-    private   void verify(Context context){
-//        String ppp = runCommand().get(0);
-
-        Log.e("包路径文件签名", getApkSignatures(context,"com.tencent.mm"));
-
-        Log.e("已安装APP签名", AppSigning.getSingInfo(context, "com.tencent.mm", AppSigning.SHA1));
+    public static void verify(Context context) {
+        Log.e("mhyLog", "hash"+AppSigning.getSignatureHash(context));
+        runCommand();
+        Log.e("包路径文件签名", getApkSignatures(context, context.getPackageName()));
+        Log.e("已安装APP签名", getInstalledAPKSignature(context, context.getPackageName()));
         //通过获取其他应用的签名 如果一样那么被hook了
     }
 
-//从安装文件获取签名
+    /** 防破签名 1
+     * 获取已安装的app签名
+     * */
+    public static String getInstalledAPKSignature(Context context, String packageName) {
+        PackageManager pm = context.getPackageManager();
+        try {
+            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
+                PackageInfo appInfo = pm.getPackageInfo(packageName.trim(), PackageManager.GET_SIGNING_CERTIFICATES);
+                if (appInfo == null || appInfo.signingInfo == null)
+                    return "";
+                return AppSigning.getSignatureString(appInfo.signingInfo.getApkContentsSigners(), AppSigning.SHA1);
+            } else {
+                PackageInfo appInfo = pm.getPackageInfo(packageName.trim(), PackageManager.GET_SIGNATURES);
+                if (appInfo == null || appInfo.signatures == null)
+                    return "";
+                return AppSigning.getSignatureString(appInfo.signatures, AppSigning.SHA1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
+
+    /** 防破签名 2
+     * C调用Java 从源安装文件获取签名信息
+     * */
     public static String getApkSignatures(Context context, String packname) {
         String sign = "";
         String path = null;
-        try {
-            path = context.getPackageManager().getApplicationInfo(packname, 0).sourceDir;
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-        }
-//        PackageInfo packageInfo = context.getPackageManager().getPackageInfo(packname, PackageManager.GET_META_DATA);
-//        ApplicationInfo applicationInfo = packageInfo.applicationInfo;
-//        String path =applicationInfo.publicSourceDir;//sourceDir; // 获取当前apk包的绝对路径
-        File apkFile=new File(path);
+//        try {//获取此包安装路径
+//            //第一种方法
+//            ApplicationInfo applicationInfo = context.getPackageManager().getApplicationInfo(packname, 0);
+//            path = applicationInfo.sourceDir;
+//            //第二种方法
+////            ApplicationInfo applicationInfo = context.getPackageManager().getPackageInfo(packname, PackageManager.GET_META_DATA).applicationInfo;
+////            path = applicationInfo.publicSourceDir;//sourceDir; // 获取当前apk包的绝对路径
+//            Log.e("其他已知包名apk的安装路径", applicationInfo.sourceDir+ "&---&" + applicationInfo.publicSourceDir);
+//        } catch (PackageManager.NameNotFoundException e) {
+//            e.printStackTrace();
+//            //第三中方法
+//            path=context.getPackageResourcePath();
+//            Log.e("在apk中获取自身安装路径", path);
+//        }
+        //第三中方法
+        path=context.getPackageResourcePath();
+      //  Log.e("在apk中获取自身安装路径", path);
+        File apkFile = new File(path);
         if (apkFile != null && apkFile.exists()) {
-            Log.e("pppp",apkFile.getAbsolutePath());
+            Log.e("包安装路径", apkFile.getAbsolutePath());
             PackageManager pm = context.getPackageManager();
             if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
                 PackageInfo pkgInfo = pm.getPackageArchiveInfo(apkFile.getAbsolutePath(), PackageManager.GET_SIGNING_CERTIFICATES);
                 if (pkgInfo != null && pkgInfo.signingInfo != null && pkgInfo.signingInfo.getApkContentsSigners().length > 0) {
-//                    sign = pkgInfo.signingInfo.getApkContentsSigners()[0].toCharsString();
-                    sign =  AppSigning.getSignatureString(pkgInfo.signingInfo.getApkContentsSigners()[0],AppSigning.SHA1);
+                    sign = AppSigning.getSignatureString(pkgInfo.signingInfo.getApkContentsSigners(), AppSigning.SHA1);
                 }
             } else {
                 PackageInfo pkgInfo = pm.getPackageArchiveInfo(apkFile.getAbsolutePath(), PackageManager.GET_SIGNATURES);
                 if (pkgInfo != null && pkgInfo.signatures != null && pkgInfo.signatures.length > 0) {
-//                    sign = pkgInfo.signatures[0].toCharsString();
-                    sign = AppSigning.getSignatureString(pkgInfo.signatures[0],AppSigning.SHA1);
+                    sign = AppSigning.getSignatureString(pkgInfo.signatures, AppSigning.SHA1);
                 }
             }
         }
         return sign;
     }
 
-    //获取已安装的app签名
-    private static String getInstalledAPKSignature(Context context, String packageName) {
+
+
+    //需要读取应用列表权限
+    public void getAppList(Context context) {
         PackageManager pm = context.getPackageManager();
-//        String packageName="com.android.calendar";
-        try {
-            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
-                PackageInfo appInfo = pm.getPackageInfo(packageName.trim(), PackageManager.GET_SIGNING_CERTIFICATES);
-                if (appInfo == null || appInfo.signingInfo == null)
-                    return "";
-//                return appInfo.signingInfo.getApkContentsSigners()[0].toCharsString();
-                return AppSigning.getSignatureString(appInfo.signingInfo.getApkContentsSigners()[0],AppSigning.SHA1);
-            } else {
-                PackageInfo appInfo = pm.getPackageInfo(packageName.trim(), PackageManager.GET_SIGNATURES);
-                if (appInfo == null || appInfo.signatures == null)
-                    return "";
-//                return appInfo.signatures[0].toCharsString();
-                return AppSigning.getSignatureString(appInfo.signatures[0],AppSigning.SHA1);
-            }
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        return "";
-    }
-//需要读取应用列表权限
-    private void getAppList(Context context) {
-        PackageManager pm = context.getPackageManager();
-        // Return a List of all packages that are installed on the device.
         List<PackageInfo> packages = pm.getInstalledPackages(0);
         for (PackageInfo packageInfo : packages) {
             // 判断系统/非系统应用
-            if ((
-                    packageInfo.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) == 0) // 非系统应用
-            {
+            if ((packageInfo.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) == 0) {// 非系统应用
                 System.out.println("MainActivity.getAppList, packageInfo=" + packageInfo.packageName);
             } else {
                 // 系统应用
             }
         }
     }
+
     static ArrayList<String> list = new ArrayList<>();
+
+    /**
+     * 通过指令获取已安装的包
+     *
+     * @return
+     */
     private static ArrayList<String> runCommand() {
         list.clear();
         try {
@@ -133,25 +160,91 @@ public class APISecurity {
                 list.add(line.split(":")[1]);
             }
         } catch (IOException e) {
-            System.out.println("runCommand,e=" + e);
+            Log.e("runCommand", "e=" + e);
         }
         return list;
     }
 
     /**
-     * 检测动态调试
+     * 检测动态调试检查应用是否处于调试状态
+     * 这个也是借助系统的一个api来进行判断isDebuggerConnected()
+     * jdb -connect com.sun.jdi.SocketAttach:hostname=127.0.0.1,port=8700，当连接成功之后，这个方法就会返回true
      */
-    public void detectedDynamicDebug(){
-        if (!BuildConfig.DEBUG){
-            if (Debug.isDebuggerConnected()){
+    public static void detectedDynamicDebug() {
+        if (!BuildConfig.DEBUG) {
+            if (Debug.isDebuggerConnected()) {
                 //进程自杀
                 int myPid = android.os.Process.myPid();
                 android.os.Process.killProcess(myPid);
-
                 //异常退出虚拟机
                 System.exit(1);
             }
         }
     }
+
+    /**
+     * 检查应用是否属于debug模式
+     * 直接调用Android中的flag属性：ApplicationInfo.FLAG_DEBUGGABLE;
+     * 判断是否属于debug模式：防调试
+     */
+    public void checkDebug(Context context) {
+        int i = context.getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE;
+        if (0 != (context.getApplicationInfo().flags &= ApplicationInfo.FLAG_DEBUGGABLE)) {
+            /**
+             *
+             * 验证是否可以调试
+             * i != 0 已经打开可调式
+             */
+            Log.e("debug", "被调试");
+
+        }
+        boolean debuggerConnected = Debug.isDebuggerConnected();
+        Log.e("debug", "是否连接调试  ： " + debuggerConnected);
+        /**
+         *
+         * 获取TracerPid来判断
+         *获取获取TracerPid来判断（TracerPid正常情况是0，如果被调试这个是不为0的）
+         */
+        int pid = android.os.Process.myPid();
+        String info = null;
+        File file = new File("/proc/" + pid + "/status");
+        try {
+            FileInputStream fileInputStream = new FileInputStream(file);
+            InputStreamReader reader = new InputStreamReader(fileInputStream);
+            BufferedReader bufferedReader = new BufferedReader(reader);
+            while ((info = bufferedReader.readLine()) != null) {
+                Log.e("debug", "proecc info :  " + info);
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    /***
+     * 防代理
+     */
+    private boolean isProxy(Context context) {
+        String proxyAddress = "";
+        int proxyPort = 0;
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+            proxyAddress = System.getProperty("http.proxyHost");
+            String proxyPortString = System.getProperty("http.proxyPort");
+            proxyPort = Integer.parseInt((proxyPortString != null ? proxyPortString : "-1"));
+        } else {
+            proxyAddress = android.net.Proxy.getHost(context);
+            proxyPort = android.net.Proxy.getPort(context);
+        }
+        if (!TextUtils.isEmpty(proxyAddress) && proxyPort != -1) {
+            return true;
+        }
+        return false;
+    }
+// 忽视代理
+//    OkHttpClient okHttpClient = new OkHttpClient.Builder()
+//            .proxy(Proxy.NO_PROXY)
+//            .build();
 }
 
