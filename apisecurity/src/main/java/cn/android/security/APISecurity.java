@@ -1,5 +1,6 @@
 package cn.android.security;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
@@ -21,6 +22,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -49,15 +51,15 @@ public class APISecurity {
      * 被Native调用的Java方法
      */
     public void javaMethod(String msg) {
-        Log.e("错误代码", msg);
+        Log.e("mhyLog错误代码", msg);
 //        System.exit(1);
     }
 
     public static void verify(Context context) {
-        Log.e("mhyLog", "hash"+AppSigning.getSignatureHash(context));
-        runCommand();
-        Log.e("包路径文件签名", getApkSignatures(context, context.getPackageName()));
-        Log.e("已安装APP签名", getInstalledAPKSignature(context, context.getPackageName()));
+        Log.e("mhyLog", "hash:"+AppSigning.getSignatureHash(context));
+        //runCommand();
+        Log.e("mhyLog包文件签名", getApkSignatures(context,context.getPackageName()));
+        Log.e("mhyLog已安装签名", getInstalledAPKSignature(context, context.getPackageName()));
         //通过获取其他应用的签名 如果一样那么被hook了
     }
 
@@ -67,7 +69,7 @@ public class APISecurity {
     public static String getInstalledAPKSignature(Context context, String packageName) {
         PackageManager pm = context.getPackageManager();
         try {
-            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 PackageInfo appInfo = pm.getPackageInfo(packageName.trim(), PackageManager.GET_SIGNING_CERTIFICATES);
                 if (appInfo == null || appInfo.signingInfo == null)
                     return "";
@@ -86,47 +88,91 @@ public class APISecurity {
 
     /** 防破签名 2
      * C调用Java 从源安装文件获取签名信息
+     * 有bug
      * */
     public static String getApkSignatures(Context context, String packname) {
-        String sign = "";
-        String path = null;
-//        try {//获取此包安装路径
-//            //第一种方法
-//            ApplicationInfo applicationInfo = context.getPackageManager().getApplicationInfo(packname, 0);
-//            path = applicationInfo.sourceDir;
-//            //第二种方法
-////            ApplicationInfo applicationInfo = context.getPackageManager().getPackageInfo(packname, PackageManager.GET_META_DATA).applicationInfo;
-////            path = applicationInfo.publicSourceDir;//sourceDir; // 获取当前apk包的绝对路径
-//            Log.e("其他已知包名apk的安装路径", applicationInfo.sourceDir+ "&---&" + applicationInfo.publicSourceDir);
-//        } catch (PackageManager.NameNotFoundException e) {
-//            e.printStackTrace();
-//            //第三中方法
-//            path=context.getPackageResourcePath();
-//            Log.e("在apk中获取自身安装路径", path);
-//        }
+        String path="";
+        if (!TextUtils.isEmpty(packname)) {
+            try {//获取此包安装路径
+                //第一种方法
+                ApplicationInfo applicationInfo = context.getPackageManager().getApplicationInfo(packname, 0);
+                path = applicationInfo.sourceDir;
+                //第二种方法
+//            ApplicationInfo applicationInfo = context.getPackageManager().getPackageInfo(packname, PackageManager.GET_META_DATA).applicationInfo;
+//            path = applicationInfo.publicSourceDir;//sourceDir; // 获取当前apk包的绝对路径
+//                Log.e("mhyLog其他已知包名apk的安装路径", applicationInfo.sourceDir + "&---&" + applicationInfo.publicSourceDir);
+            } catch (PackageManager.NameNotFoundException e) {
+                e.printStackTrace();
+                //第三中方法
+//                path = context.getPackageResourcePath();
+                path= context.getApplicationInfo().sourceDir;
+//                Log.e("mhyLOg在apk中获取自身安装路径", path);
+            }
+        }else {
         //第三中方法
-        path=context.getPackageResourcePath();
-      //  Log.e("在apk中获取自身安装路径", path);
+//            path= context.getApplicationInfo().sourceDir;
+            path=context.getPackageResourcePath();
+        }
         File apkFile = new File(path);
-        if (apkFile != null && apkFile.exists()) {
-            Log.e("包安装路径", apkFile.getAbsolutePath());
+        if (apkFile.exists()) {
+            Log.e("mhyLog包安装路径", apkFile.getAbsolutePath());
             PackageManager pm = context.getPackageManager();
-            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 PackageInfo pkgInfo = pm.getPackageArchiveInfo(apkFile.getAbsolutePath(), PackageManager.GET_SIGNING_CERTIFICATES);
-                if (pkgInfo != null && pkgInfo.signingInfo != null && pkgInfo.signingInfo.getApkContentsSigners().length > 0) {
-                    sign = AppSigning.getSignatureString(pkgInfo.signingInfo.getApkContentsSigners(), AppSigning.SHA1);
+                if (pkgInfo != null && pkgInfo.signingInfo != null) {
+                    return AppSigning.getSignatureString(pkgInfo.signingInfo.getApkContentsSigners(), AppSigning.SHA1);
                 }
             } else {
                 PackageInfo pkgInfo = pm.getPackageArchiveInfo(apkFile.getAbsolutePath(), PackageManager.GET_SIGNATURES);
-                if (pkgInfo != null && pkgInfo.signatures != null && pkgInfo.signatures.length > 0) {
-                    sign = AppSigning.getSignatureString(pkgInfo.signatures, AppSigning.SHA1);
+                if (pkgInfo != null && pkgInfo.signatures != null) {
+                    return AppSigning.getSignatureString(pkgInfo.signatures, AppSigning.SHA1);
                 }
             }
         }
-        return sign;
+        return "";
     }
 
+    /**
+     * 手动构建 Context
+     */
+    @SuppressLint({"DiscouragedPrivateApi","PrivateApi"})
+    public static Context createContext() throws ClassNotFoundException,
+            NoSuchMethodException,
+            InvocationTargetException,
+            IllegalAccessException,
+            NoSuchFieldException,
+            NullPointerException{
 
+        // 反射获取 ActivityThread 的 currentActivityThread 获取 mainThread
+        Class activityThreadClass = Class.forName("android.app.ActivityThread");
+        Method currentActivityThreadMethod =
+                activityThreadClass.getDeclaredMethod("currentActivityThread");
+        currentActivityThreadMethod.setAccessible(true);
+        Object mainThreadObj = currentActivityThreadMethod.invoke(null);
+
+        // 反射获取 mainThread 实例中的 mBoundApplication 字段
+        Field mBoundApplicationField = activityThreadClass.getDeclaredField("mBoundApplication");
+        mBoundApplicationField.setAccessible(true);
+        Object mBoundApplicationObj = mBoundApplicationField.get(mainThreadObj);
+
+        // 获取 mBoundApplication 的 packageInfo 变量
+        if (mBoundApplicationObj == null) throw new NullPointerException("mBoundApplicationObj 反射值空");
+        Class mBoundApplicationClass = mBoundApplicationObj.getClass();
+        Field infoField = mBoundApplicationClass.getDeclaredField("info");
+        infoField.setAccessible(true);
+        Object packageInfoObj = infoField.get(mBoundApplicationObj);
+
+        // 反射调用 ContextImpl.createAppContext(ActivityThread mainThread, LoadedApk packageInfo)
+        if (mainThreadObj == null) throw new NullPointerException("mainThreadObj 反射值空");
+        if (packageInfoObj == null) throw new NullPointerException("packageInfoObj 反射值空");
+        Method createAppContextMethod = Class.forName("android.app.ContextImpl").getDeclaredMethod(
+                "createAppContext",
+                mainThreadObj.getClass(),
+                packageInfoObj.getClass());
+        createAppContextMethod.setAccessible(true);
+        return (Context) createAppContextMethod.invoke(null, mainThreadObj, packageInfoObj);
+
+    }
 
     //需要读取应用列表权限
     public void getAppList(Context context) {
@@ -146,8 +192,6 @@ public class APISecurity {
 
     /**
      * 通过指令获取已安装的包
-     *
-     * @return
      */
     private static ArrayList<String> runCommand() {
         list.clear();

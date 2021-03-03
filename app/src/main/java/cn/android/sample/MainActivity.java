@@ -21,12 +21,12 @@ public class MainActivity extends AppCompatActivity {
 
         tv = findViewById(R.id.sample_text);
 
-        if(APISecurity.init(this)){
+        if(APISecurity.init(getApplicationContext())){
             tv.setText("初始化ok");
         }else {
             tv.setText("初始化fail");
         }
-        APISecurity.verify(this);
+        APISecurity.verify(getApplicationContext());
         findViewById(R.id.btnTest).setOnClickListener(new View.OnClickListener() {
             @SuppressLint("SetTextI18n")
             @Override

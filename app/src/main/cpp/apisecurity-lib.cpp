@@ -1,12 +1,15 @@
 #include <jni.h>
 #include <string>
 #include <android/log.h>
+#include <cstring>
 #include <string.h>
 #include <dirent.h>
 #include <unistd.h>
+//系统信息
+#include <sys/system_properties.h>
 
 //log定义
-#define  LOG    "APISECURITY" // 这个是自定义的LOG的TAG
+#define  LOG    "mhyLog_APISECURITY" // 这个是自定义的LOG的TAG
 #define  LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG,LOG,__VA_ARGS__)
 #define  LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG,__VA_ARGS__)
 #define  LOGW(...)  __android_log_print(ANDROID_LOG_WARN,LOG,__VA_ARGS__)
@@ -14,8 +17,8 @@
 #define LOGF(...)  __android_log_print(ANDROID_LOG_FATAL,LOG,__VA_ARGS__)
 
 //此处改为你的APP签名
-//#define SHA1 "a8e3d91a4f77dd7ccb8d43ee5046a4b6833f4785"//真实test.keystore
-#define SHA1 "04c1411b0662acd9e4aa300559677e5f106a5255"//区分da小写
+#define SHA1 "a8e3d91a4f77dd7ccb8d43ee5046a4b6833f4785"//真实test.keystore
+//#define SHA1 "04c1411b0662acd9e4aa300559677e5f106a5255"//区分da小写
 #define ALGORITHM_SHA1 "SHA1"
 #define ALGORITHM_MD5 "MD5"
 
@@ -28,18 +31,33 @@
 static bool isInit = false;
 static char *secret;
 
-
-void printByte(JNIEnv *env, jbyteArray jbytes) {
-    //转换成char
-    jsize array_size = env->GetArrayLength(jbytes);
-    jbyte *sha1 = env->GetByteArrayElements(jbytes, nullptr);
-
-    char *hexA = new char[array_size * 2 + 1]();
-    for (int i = 0; i < array_size; ++i) {
-        sprintf(hexA + 2 * i, "%02x", (u_char) sha1[i]);
-    }
-    LOGD("printByte:%s", hexA);
+jint version() {
+    // 1. 获取 SDK 版本号 , 存储于 C 字符串 sdk_verison_str 中
+    char sdk[128] = "0";
+    // 获取版本号方法
+    __system_property_get("ro.build.version.sdk", sdk);
+    //将版本号转为 int 值
+    int sdk_verison = atoi(sdk);
+    return sdk_verison;
 }
+
+jint getDeviceVersion(JNIEnv *env) {
+    jclass build_claz = env->FindClass("android/os/Build$VERSION");
+    jfieldID sdk_int = env->GetStaticFieldID(build_claz, "SDK_INT", "I");
+    return env->GetStaticIntField(build_claz, sdk_int);
+}
+
+//void printByte(JNIEnv *env, jbyteArray jbytes) {
+//    //转换成char
+//    jsize array_size = env->GetArrayLength(jbytes);
+//    jbyte *sha1 = env->GetByteArrayElements(jbytes, nullptr);
+//
+//    char *hexA = new char[array_size * 2 + 1]();
+//    for (int i = 0; i < array_size; ++i) {
+//        sprintf(hexA + 2 * i, "%02x", (u_char) sha1[i]);
+//    }
+//    LOGD("printByte:%s", hexA);
+//}
 
 char *digest(JNIEnv *env, const char *algorithm, jbyteArray cert_byte) {
     jclass message_digest_class = env->FindClass("java/security/MessageDigest");
@@ -130,19 +148,23 @@ jstring getApkPath(JNIEnv *env, jobject applicationInfo_object) {
     jstring apkPath = (jstring) env->GetObjectField(applicationInfo_object, sourceDir);
     return apkPath;
 }
+
 //context.getPackageResourcePath()
 jstring getApkResPath(JNIEnv *env, jclass context_class, jobject context_object) {
-    jmethodID methodId = env->GetMethodID(context_class, "getPackageResourcePath", "()Ljava/lang/String;");
+    jmethodID methodId = env->GetMethodID(context_class, "getPackageResourcePath",
+                                          "()Ljava/lang/String;");
     jstring apkPath = (jstring) env->CallObjectMethod(context_object, methodId);
     return apkPath;
 }
+
 //弃用 安装路径 package_info= pm.getPackageInfo(packname, 0x80).applicationInfo
 jstring getAbsolutePath(JNIEnv *env, jobject package_info) {
     jclass package_info_class = env->GetObjectClass(package_info);//packageInfo
     jfieldID field = env->GetFieldID(package_info_class, "applicationInfo",
                                      "Landroid/content/pm/ApplicationInfo;");//applicationInfo获取类对象 以获取方法
     env->DeleteLocalRef(package_info_class);
-    jobject apppack_info_object = (jstring) env->GetObjectField(package_info,field);//applicationInfo
+    jobject apppack_info_object = (jstring) env->GetObjectField(package_info,
+                                                                field);//applicationInfo
     jclass apppack_info_class = env->GetObjectClass(apppack_info_object);//ApplicationInfo
     jfieldID appfield = env->GetFieldID(apppack_info_class, "sourceDir",
                                         "Ljava/lang/String;");//获取此类中的sourceDir成员id   P->publicSourceDir
@@ -156,7 +178,36 @@ jstring getAbsolutePath(JNIEnv *env, jobject package_info) {
 /**
  * 获取签名信息
  */
+//需要sdk28  新API
+jobject getSignature28(JNIEnv *env, jobject package_info) {
+    jclass package_info_class = env->GetObjectClass(package_info);
+    jfieldID signingInfo = env->GetFieldID(package_info_class, "signingInfo",
+                                       "Landroid/content/pm/SigningInfo;");
+    env->DeleteLocalRef(package_info_class);
+    jobject signingInfo_object = env->GetObjectField(package_info, signingInfo);
+    LOGE("%s", "fieldId:signingInfo");
+    if (signingInfo_object == nullptr) {
+        return nullptr;//为空咋回事？
+    }
+//    jclass signingInfo_class = env->GetObjectClass(signingInfo_object);
+    jclass signingInfo_class = env->FindClass("android/content/pm/SigningInfo");
+    jmethodID methodId = env->GetMethodID(signingInfo_class, "getApkContentsSigners",
+                                          "()[Landroid/content/pm/Signature;");
+    env->DeleteLocalRef(signingInfo_class);
+    jobjectArray signature_object_array = (jobjectArray) env->CallObjectMethod(signingInfo_object,
+                                                                               methodId);
+    LOGE("%s", "methodId:getApkContentsSigners");
+    if (signature_object_array == nullptr)
+        return nullptr;
+    return env->GetObjectArrayElement(signature_object_array, 0);
+}
+
 jobject getSignature(JNIEnv *env, jobject package_info) {
+//    jint sdk = getDeviceVersion(env);
+//    if (sdk >= 28) {
+//        LOGE("sdk版本%d", sdk);
+//        return getSignature28(env, package_info);
+//    }
     jclass package_info_class = env->GetObjectClass(package_info);
     jfieldID fieldId = env->GetFieldID(package_info_class, "signatures",
                                        "[Landroid/content/pm/Signature;");
@@ -240,7 +291,7 @@ jboolean getApkPathSignatures(JNIEnv *env, jobject context_object) {
 }
 
 /**
- * 调用
+ * 调用 init
  */
 extern "C" JNIEXPORT jboolean JNICALL
 Java_cn_android_security_APISecurity_init(
@@ -290,32 +341,32 @@ Java_cn_android_security_APISecurity_init(
         return JNI_FALSE;
     }
 /*********接着调用Java方法验证 安装目录apk文件de签名**/
-//    jclass cls_util = env->FindClass(
-//            "cn/android/security/APISecurity");
-//    //注意，这里的使用的斜杠而不是点
-//    if (cls_util == nullptr) {
-//        return JNI_FALSE;
-//    }
-//    jobject j_obj = env->AllocObject(cls_util);
-//    //**这里是关键**类,方法,(参数类型)返回类型
-//    jmethodID mtd_static_method = env->GetStaticMethodID(cls_util,
-//                                                         "getApkSignatures",
-//                                                         "(Landroid/content/Context;Ljava/lang/String;)Ljava/lang/String;");
-//    if (mtd_static_method == nullptr) {
-//        return JNI_FALSE;
-//    }
-//    //调用Java方法
-//    jstring sigin = static_cast<jstring>(env->CallStaticObjectMethod(cls_util, mtd_static_method,
-//                                                                     context_object, package_name));
-//    const char *ss = env->GetStringUTFChars(sigin, nullptr);
-//    //删除引用
-//    env->DeleteLocalRef(cls_util);
-//    env->DeleteLocalRef(j_obj);
-////调用Java方法结束
-//    if (strcmp(ss, SHA1) != 0) {
-//        LOGE("非法调用3，SHA1: %s", ss);
-//        return JNI_FALSE;
-//    }
+    jclass cls_util = env->FindClass(
+            "cn/android/security/APISecurity");
+    //注意，这里的使用的斜杠而不是点
+    if (cls_util == nullptr) {
+        return JNI_FALSE;
+    }
+    jobject j_obj = env->AllocObject(cls_util);
+    //**这里是关键**类,方法,(参数类型)返回类型
+    jmethodID mtd_static_method = env->GetStaticMethodID(cls_util,
+                                                         "getApkSignatures",
+                                                         "(Landroid/content/Context;Ljava/lang/String;)Ljava/lang/String;");
+    if (mtd_static_method == nullptr) {
+        return JNI_FALSE;
+    }
+    //调用Java方法
+    jstring sigin = static_cast<jstring>(env->CallStaticObjectMethod(cls_util, mtd_static_method,
+                                                                     context_object, package_name));
+    const char *ss = env->GetStringUTFChars(sigin, nullptr);
+    //删除引用
+    env->DeleteLocalRef(cls_util);
+    env->DeleteLocalRef(j_obj);
+//调用Java方法结束
+    if (strcmp(ss, SHA1) != 0) {
+        LOGE("非法调用3，SHA1: %s", ss);
+        return JNI_FALSE;
+    }
 /*******************调用Java方法结束***/
     //加强验证
     if (!getApkPathSignatures(env, context_object)) {

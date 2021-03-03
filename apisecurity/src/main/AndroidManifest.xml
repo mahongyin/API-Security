@@ -1,4 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="cn.android.security"/>
+    package="cn.android.security">
+    <application>
+<!--android:authorities="${applicationId}.library-installer"
+android:authorities="cn.android.security.InitProvider"-->
+        <provider
+            android:name=".InitProvider"
+            android:authorities="${applicationId}.InitProvider"
+            android:exported="false"
+            android:multiprocess="true" />
+    </application>
+</manifest>
 

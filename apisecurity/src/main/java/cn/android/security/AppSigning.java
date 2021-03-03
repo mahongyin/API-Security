@@ -6,6 +6,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.os.Build;
+import android.util.Base64;
 import android.util.DisplayMetrics;
 import android.util.Log;
 
@@ -54,29 +55,31 @@ public class AppSigning {
      * 获取相应的类型的签名信息（把签名的byte[]信息转换成16进制）
      */
     public static String getSignatureString(Signature[] sigs, @SigniType String type) {
-        for (Signature sig : sigs) {
-            Log.e("mhyLog","getSignatureString:"+sig.toCharsString());
-        }
-        byte[] hexBytes = sigs[0].toByteArray();
         String fingerprint = "error!";
-        try {
-            StringBuffer buffer = new StringBuffer();
-            MessageDigest digest = MessageDigest.getInstance(type);
-            if (digest != null) {
-                digest.reset();
-                digest.update(hexBytes);
-                byte[] byteArray = digest.digest();
-                for (int i = 0; i < byteArray.length; i++) {
-                    if (Integer.toHexString(0xFF & byteArray[i]).length() == 1) {
-                        buffer.append("0").append(Integer.toHexString(0xFF & byteArray[i])); //补0，转换成16进制
-                    } else {
-                        buffer.append(Integer.toHexString(0xFF & byteArray[i]));//转换成16进制
-                    }
-                }
-                fingerprint = buffer.toString().toLowerCase()/*.toUpperCase()*/; //转换成大写
+        if (sigs.length>0) {
+            for (Signature sig : sigs) {
+                Log.e("mhyLog", "Signature64:" + Base64.encodeToString(sig.toCharsString().getBytes(),Base64.DEFAULT));
             }
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
+            byte[] hexBytes = sigs[0].toByteArray();
+            try {
+                StringBuffer buffer = new StringBuffer();
+                MessageDigest digest = MessageDigest.getInstance(type);
+                if (digest != null) {
+                    digest.reset();
+                    digest.update(hexBytes);
+                    byte[] byteArray = digest.digest();
+                    for (int i = 0; i < byteArray.length; i++) {
+                        if (Integer.toHexString(0xFF & byteArray[i]).length() == 1) {
+                            buffer.append("0").append(Integer.toHexString(0xFF & byteArray[i])); //补0，转换成16进制
+                        } else {
+                            buffer.append(Integer.toHexString(0xFF & byteArray[i]));//转换成16进制
+                        }
+                    }
+                    fingerprint = buffer.toString().toLowerCase()/*.toUpperCase()*/; //转换成大写
+                }
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+            }
         }
         return fingerprint;
     }
@@ -168,10 +171,11 @@ public class AppSigning {
         return str.toString();
     }
 
-    /** 防破签名 3  使原生检测签名不被hook 助力防破签名1而存在
+    /** 防破签名 3  使原生检测签名能获取真实值 助力防破签名1而存在
      * 通过重置PackageManager防止getPackageInfo方法被代理设置
      * 亲测MT管理器（当前2.9.1）的一键去签名校验(包括加强版)无效！
      * 当然如果别人反编译把代码删除的话那就没办法了
+     * getBaseContext()
      */
     public static void resetPackageManager(Context baseContext) {
         try {
@@ -207,7 +211,7 @@ public class AppSigning {
      * 检测 PackageManager 代理
      */
     @SuppressLint("PrivateApi")
-    private boolean checkPMProxy(Context context){
+    public static boolean checkPMProxy(Context context){
         String truePMName = "android.content.pm.IPackageManager$Stub$Proxy";
         String nowPMName = "";
         try {
@@ -227,7 +231,9 @@ public class AppSigning {
 
     /** 防破签名 2
      * 安装路径获取签名
+     * PackageParser 28新api
      */
+    @SuppressLint("PrivateApi")
     public static String getAPKSignatures(String apkPath) {
         String PATH_PackageParser = "android.content.pm.PackageParser";
         try {
@@ -252,7 +258,7 @@ public class AppSigning {
                 Object pkgParserPkg = pkgParser_parsePackageMtd.invoke(pkgParser, new File(apkPath), PackageManager.GET_SIGNATURES);
 
                 if (Build.VERSION.SDK_INT >= 28) {
-                    Method pkgParser_collectCertificatesMtd = pkgParserCls.getDeclaredMethod("collectCertificates", pkgParserPkg.getClass(), Boolean.TYPE);
+                    Method pkgParser_collectCertificatesMtd = pkgParserCls.getDeclaredMethod("collectCertificates", pkgParserPkg.getClass(), Boolean.TYPE);//true skipVerify
                     pkgParser_collectCertificatesMtd.invoke(pkgParser, pkgParserPkg, Build.VERSION.SDK_INT > 28);
 
 //                    Method pkgParser_collectCertificatesMtd = pkgParserCls.getDeclaredMethod("collectCertificates", pkgParserPkg.getClass(), Boolean.TYPE);
