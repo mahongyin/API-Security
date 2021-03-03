@@ -1,7 +1,0 @@
-Executable : E:\android-sdk-windows\cmake\3.10.2.4988404\bin\ninja.exe
-arguments : 
--C
-D:\AProject\Mahy\Android-API-Security-master\app\.cxx\cmake\debug\x86_64
-apisecurity-lib
-jvmArgs : 
-

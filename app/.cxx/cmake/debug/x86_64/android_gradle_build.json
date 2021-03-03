@@ -1,38 +1,38 @@
 {
   "stringTable": {
-    "0": "D:/AProject/Mahy/Android-API-Security-master/app/.cxx/cmake/debug/x86_64",
-    "1": "--target=x86_64-none-linux-android21 --gcc-toolchain=E:/android-sdk-windows/ndk/21.0.6113669/toolchains/llvm/prebuilt/windows-x86_64 --sysroot=E:/android-sdk-windows/ndk/21.0.6113669/toolchains/llvm/prebuilt/windows-x86_64/sysroot -Dapisecurity_lib_EXPORTS -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security -O0 -fno-limit-debug-info -fPIC"
+    "0": "G:/AProject/Mahy/API-Security/app/.cxx/cmake/debug/x86_64",
+    "1": "--target=x86_64-none-linux-android21 --gcc-toolchain=D:/android-sdk-windows/ndk/20.1.5948944/toolchains/llvm/prebuilt/windows-x86_64 --sysroot=D:/android-sdk-windows/ndk/20.1.5948944/toolchains/llvm/prebuilt/windows-x86_64/sysroot -Dapisecurity_lib_EXPORTS -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -fno-addrsig -Wa,--noexecstack -Wformat -Werror=format-security -O0 -fno-limit-debug-info -fPIC"
   },
   "buildFiles": [
-    "E:\\android-sdk-windows\\ndk\\21.0.6113669\\build\\cmake\\platforms.cmake",
-    "D:\\AProject\\Mahy\\Android-API-Security-master\\app\\CMakeLists.txt",
-    "E:\\android-sdk-windows\\ndk\\21.0.6113669\\build\\cmake\\android.toolchain.cmake"
+    "D:\\android-sdk-windows\\ndk\\20.1.5948944\\build\\cmake\\platforms.cmake",
+    "D:\\android-sdk-windows\\ndk\\20.1.5948944\\build\\cmake\\android.toolchain.cmake",
+    "G:\\AProject\\Mahy\\API-Security\\app\\CMakeLists.txt"
   ],
   "cleanCommands": [
-    "E:\\android-sdk-windows\\cmake\\3.10.2.4988404\\bin\\ninja.exe -C \"D:\\AProject\\Mahy\\Android-API-Security-master\\app\\.cxx\\cmake\\debug\\x86_64\" clean"
+    "D:\\android-sdk-windows\\cmake\\3.10.2.4988404\\bin\\ninja.exe -C \"G:\\AProject\\Mahy\\API-Security\\app\\.cxx\\cmake\\debug\\x86_64\" clean"
   ],
-  "buildTargetsCommand": "E:\\android-sdk-windows\\cmake\\3.10.2.4988404\\bin\\ninja.exe  -C \"D:\\AProject\\Mahy\\Android-API-Security-master\\app\\.cxx\\cmake\\debug\\x86_64\" {LIST_OF_TARGETS_TO_BUILD}",
+  "buildTargetsCommand": "D:\\android-sdk-windows\\cmake\\3.10.2.4988404\\bin\\ninja.exe  -C \"G:\\AProject\\Mahy\\API-Security\\app\\.cxx\\cmake\\debug\\x86_64\" {LIST_OF_TARGETS_TO_BUILD}",
   "libraries": {
     "apisecurity-lib-Debug-x86_64": {
-      "buildCommand": "E:\\android-sdk-windows\\cmake\\3.10.2.4988404\\bin\\ninja.exe -C \"D:\\AProject\\Mahy\\Android-API-Security-master\\app\\.cxx\\cmake\\debug\\x86_64\" apisecurity-lib",
+      "buildCommand": "D:\\android-sdk-windows\\cmake\\3.10.2.4988404\\bin\\ninja.exe -C \"G:\\AProject\\Mahy\\API-Security\\app\\.cxx\\cmake\\debug\\x86_64\" apisecurity-lib",
       "buildType": "debug",
-      "toolchain": "3081341266",
+      "toolchain": "1409954238",
       "abi": "x86_64",
       "artifactName": "apisecurity-lib",
       "files": [
         {
-          "src": "D:\\AProject\\Mahy\\Android-API-Security-master\\app\\src\\main\\cpp\\apisecurity-lib.cpp",
+          "src": "G:\\AProject\\Mahy\\API-Security\\app\\src\\main\\cpp\\apisecurity-lib.cpp",
           "flagsOrdinal": 1,
           "workingDirectoryOrdinal": 0
         }
       ],
       "headers": [],
-      "output": "D:\\AProject\\Mahy\\Android-API-Security-master\\app\\build\\intermediates\\cmake\\debug\\obj\\x86_64\\libapisecurity-lib.so"
+      "output": "G:\\AProject\\Mahy\\API-Security\\app\\build\\intermediates\\cmake\\debug\\obj\\x86_64\\libapisecurity-lib.so"
     }
   },
   "toolchains": {
-    "3081341266": {
-      "cppCompilerExecutable": "E:\\android-sdk-windows\\ndk\\21.0.6113669\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe"
+    "1409954238": {
+      "cppCompilerExecutable": "D:\\android-sdk-windows\\ndk\\20.1.5948944\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe"
     }
   },
   "cFileExtensions": [],

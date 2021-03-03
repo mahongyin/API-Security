@@ -1,5 +1,5 @@
 {
-  "ndkFolder": "E:\\android-sdk-windows\\ndk\\21.0.6113669",
+  "ndkFolder": "D:\\android-sdk-windows\\ndk\\20.1.5948944",
   "messages": [
     {
       "level": "INFO",
@@ -7,7 +7,7 @@
     },
     {
       "level": "INFO",
-      "message": "ndk.dir in local.properties is E:\\android-sdk-windows\\ndk\\21.0.6113669"
+      "message": "ndk.dir in local.properties is D:\\android-sdk-windows\\ndk\\20.1.5948944"
     },
     {
       "level": "INFO",
@@ -15,27 +15,35 @@
     },
     {
       "level": "INFO",
-      "message": "sdkFolder is E:\\android-sdk-windows"
+      "message": "sdkFolder is D:\\android-sdk-windows"
     },
     {
       "level": "INFO",
-      "message": "Considering E:\\android-sdk-windows\\ndk\\21.0.6113669 by ndk.dir"
+      "message": "Considering D:\\android-sdk-windows\\ndk\\20.1.5948944 by ndk.dir"
     },
     {
       "level": "INFO",
-      "message": "Considering E:\\android-sdk-windows\\ndk-bundle in SDK ndk-bundle folder"
+      "message": "Considering D:\\android-sdk-windows\\ndk-bundle in SDK ndk-bundle folder"
     },
     {
       "level": "INFO",
-      "message": "Considering E:\\android-sdk-windows\\ndk\\20.0.5594570 in SDK ndk folder"
+      "message": "Considering D:\\android-sdk-windows\\ndk\\20.1.5948944 in SDK ndk folder"
     },
     {
       "level": "INFO",
-      "message": "Considering E:\\android-sdk-windows\\ndk\\21.0.6113669 in SDK ndk folder"
+      "message": "Considering D:\\android-sdk-windows\\ndk\\21.1.6352462 in SDK ndk folder"
     },
     {
       "level": "INFO",
-      "message": "Found requested ndk.dir (E:\\android-sdk-windows\\ndk\\21.0.6113669) which has version 21.0.6113669"
+      "message": "Considering D:\\android-sdk-windows\\ndk\\21.3.6528147 in SDK ndk folder"
+    },
+    {
+      "level": "INFO",
+      "message": "Rejected D:\\android-sdk-windows\\ndk-bundle in SDK ndk-bundle folder because that location has no source.properties"
+    },
+    {
+      "level": "INFO",
+      "message": "Found requested ndk.dir (D:\\android-sdk-windows\\ndk\\20.1.5948944) which has version 20.1.5948944"
     }
   ]
 }
