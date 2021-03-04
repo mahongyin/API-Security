@@ -36,7 +36,6 @@ import cn.android.security.APISecurity;
 public class MyApplication extends Application implements InvocationHandler {
     private static final int GET_SIGNATURES = 64;
     private String appPkgName = "";
-    private String appPath = "";
     private Object base;
     private byte[][] sign;
     static MyApplication app;
@@ -63,7 +62,7 @@ public class MyApplication extends Application implements InvocationHandler {
     @Override
     protected void attachBaseContext(Context context) {
         //在这里hook 签名校验被
-       // hook(context);
+        hook(context);
         super.attachBaseContext(context);
     }
 
@@ -71,10 +70,7 @@ public class MyApplication extends Application implements InvocationHandler {
     public void onCreate() {
         super.onCreate();
         app = this;
-        Application nowApplication = app;
-       // SystemProperties.getInt("ro.build.version.sdk", 0);
         //再这看 不一定靠谱
-        Log.e("mhyLog","检查App名:"+nowApplication.getClass().getSimpleName());
         //在签名校验被hook 之后重置PackageManager
         /*在这里 重置PackageManager 只要在验证前重置即可*/
        // AppSigning.resetPackageManager(getBaseContext());
@@ -107,7 +103,6 @@ public class MyApplication extends Application implements InvocationHandler {
             this.base = obj;
             this.sign = bArr;
             this.appPkgName = context.getPackageName();
-            this.appPath = context.getPackageResourcePath();
             Object newProxyInstance = Proxy.newProxyInstance(cls2.getClassLoader(), new Class[]{cls2}, this);
             declaredField.set(invoke, newProxyInstance);
             PackageManager packageManager = context.getPackageManager();
@@ -126,102 +121,58 @@ public class MyApplication extends Application implements InvocationHandler {
     public Object invoke(Object obj, Method method, Object[] objArr) throws Throwable {
         if ("getPackageInfo".equals(method.getName())) {//方法名对上
             Log.e("mhyLogHook","getPackageInfo");
-            String str = (String) objArr[0];
-            if ((((Integer) objArr[1]).intValue() & 64) != 0 && this.appPkgName.equals(str)) {
+            String packageName = (String) objArr[0];//64 134217728
+           // int flag=((Integer) objArr[1]).intValue();
+            if (this.appPkgName.equals(packageName)) {
                 PackageInfo packageInfo = (PackageInfo) method.invoke(this.base, objArr);
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                    //packageInfo.signingInfo.getApkContentsSigners();//mSigningDetails.signatures
-                    //mSigningDetails.signatures;//PackageParser.SigningDetails
-                    SigningInfo signingInfo= packageInfo.signingInfo;
-//                    Class<?> sgInfo_clazz=SigningInfo.class;//getClass()&Class.forName(“类完整的路径”)仅限于引用类型的对象
-//                    Field mSigningDetails_f=sgInfo_clazz.getDeclaredField("mSigningDetails");
-//                    mSigningDetails_f.setAccessible(true);
-//                    Object mSigningDetails = mSigningDetails_f.get(signingInfo);//PackageParser.SigningDetails
-
-                    Class<?> pkgParserCls = Class.forName("android.content.pm.PackageParser");
-                    Constructor<?> pkgParserCt = pkgParserCls.getConstructor();//null;
-                    Object pkgParser = pkgParserCt.newInstance();//null;
-//                    pkgParserCt =
-//                    pkgParser =
-                    Method pkgParser_parsePackageMtd = pkgParserCls.getDeclaredMethod("parsePackage", File.class, int.class);
-                    Object pkgParserPkg = pkgParser_parsePackageMtd.invoke(pkgParser, new File(getPackageResourcePath()), PackageManager.GET_SIGNING_CERTIFICATES);
-
-                    Method pkgParser_collectCertificatesMtd = pkgParserCls.getDeclaredMethod("collectCertificates", pkgParserPkg.getClass(), Boolean.TYPE);
-                    pkgParser_collectCertificatesMtd.invoke(pkgParser, pkgParserPkg, true);
-
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P &&(((Integer) objArr[1]).intValue() & 134217728) != 0) {
+//packageInfo.signingInfo.getApkContentsSigners();//mSigningDetails.signatures
+//mSigningDetails.signatures;//PackageParser.SigningDetails
+                    SigningInfo signingInfo= packageInfo.signingInfo;//有坑空
+/*1*/
+                    Class<?> sgInfo_clazz=Class.forName("android.content.pm.SigningInfo");//getClass()&Class.forName(“类完整的路径”)仅限于引用类型的对象
+                    Field mSigningDetails_f=sgInfo_clazz.getDeclaredField("mSigningDetails");
+                    mSigningDetails_f.setAccessible(true);
+                    Object mSigningDetails = mSigningDetails_f.get(signingInfo);//PackageParser.SigningDetails
+/*2*/
+//                    Class<?> pkgParserCls = Class.forName("android.content.pm.PackageParser");
+//                    Constructor<?> pkgParserCt = pkgParserCls.getConstructor();
+//                    Object pkgParser = pkgParserCt.newInstance();
+//                    Method pkgParser_parsePackageMtd = pkgParserCls.getDeclaredMethod("parsePackage", File.class, int.class);
+//                    Object pkgParserPkg = pkgParser_parsePackageMtd.invoke(pkgParser, new File(getPackageResourcePath()), PackageManager.GET_SIGNING_CERTIFICATES);
+//
 //                    Method pkgParser_collectCertificatesMtd = pkgParserCls.getDeclaredMethod("collectCertificates", pkgParserPkg.getClass(), Boolean.TYPE);
 //                    pkgParser_collectCertificatesMtd.invoke(pkgParser, pkgParserPkg, false);
-
-                    Field mSigningDetailsField = pkgParserPkg.getClass().getDeclaredField("mSigningDetails"); // SigningDetails
-                    mSigningDetailsField.setAccessible(true);
-                    Object mSigningDetails = mSigningDetailsField.get(pkgParserPkg);
-
-                    Field infoField = mSigningDetails.getClass().getDeclaredField("signatures");
-                    infoField.setAccessible(true);
+//
+////                    Method pkgParser_collectCertificatesMtd = pkgParserCls.getDeclaredMethod("collectCertificates", pkgParserPkg.getClass(), Boolean.TYPE);
+////                    pkgParser_collectCertificatesMtd.invoke(pkgParser, pkgParserPkg, false);
+//
+//                    Field mSigningDetailsField = pkgParserPkg.getClass().getDeclaredField("mSigningDetails"); // SigningDetails
+//                    mSigningDetailsField.setAccessible(true);
+//                    Object mSigningDetails = mSigningDetailsField.get(pkgParserPkg);
+/*end*/
+                    Class<?> sd=Class.forName("android.content.pm.PackageParser$SigningDetails");
+                    //PackageParser.SigningDetails.signatures  这是一个final属性 只有在 new SigningDetails(...)时
+                    Field infoField = /*mSigningDetails.getClass()*/sd.getField("signatures");
                     Signature[] info = new Signature[this.sign.length];
                     for (int i = 0; i < this.sign.length; i++) {
                         info[i] = new Signature(this.sign[i]);
                     }
-                    //  Signature[] info = (Signature[]) infoField.get(mSigningDetails);//获取属性值
                     infoField.set(mSigningDetails, info);
-                }// else { //双hook
+                    Signature[] info2 = signingInfo.getApkContentsSigners();//获取属性值
+                    if (info2.length>0){
+                    Log.e("mhyLogHook2",info2[0].toCharsString());}
+                } else { //双hook
+//                if ((((Integer) objArr[1]).intValue() & 64) != 0){
                     packageInfo.signatures = new Signature[this.sign.length];
                     for (int i = 0; i < packageInfo.signatures.length; i++) {
                         packageInfo.signatures[i] = new Signature(this.sign[i]);
-                 //   }
-                }
-                return packageInfo;
-            }
-
-        }
-        if ("getPackageArchiveInfo".equals(method.getName())) {//从安装路径获取apk签名方法
-            Log.e("mhyLogHook","getPackageArchiveInfo");
-            // getPackageArchiveInfo(String archiveFilePath, @PackageInfoFlags int flags)
-            String str = (String) objArr[0];//第一个参数
-            if ((((Integer) objArr[1]).intValue() & 64) != 0 && this.appPath.equals(str)) {
-                PackageInfo packageInfo = (PackageInfo) method.invoke(this.base, objArr);
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                    SigningInfo signingInfo= packageInfo.signingInfo;
-//                    Class<?> sgInfo_clazz=SigningInfo.class;
-//                    Field mSigningDetails_f=sgInfo_clazz.getDeclaredField("mSigningDetails");
-//                    mSigningDetails_f.setAccessible(true);
-//                    Object mSigningDetails = mSigningDetails_f.get(signingInfo);
-
-                    Class<?> pkgParserCls = Class.forName("android.content.pm.PackageParser");
-                    Constructor<?> pkgParserCt = pkgParserCls.getConstructor();//null;
-                    Object pkgParser = pkgParserCt.newInstance();//null;
-//                    pkgParserCt =
-//                    pkgParser =
-                    Method pkgParser_parsePackageMtd = pkgParserCls.getDeclaredMethod("parsePackage", File.class, int.class);
-                    Object pkgParserPkg = pkgParser_parsePackageMtd.invoke(pkgParser, new File(getPackageResourcePath()), PackageManager.GET_SIGNING_CERTIFICATES);
-
-                    Method pkgParser_collectCertificatesMtd = pkgParserCls.getDeclaredMethod("collectCertificates", pkgParserPkg.getClass(), Boolean.TYPE);
-                    pkgParser_collectCertificatesMtd.invoke(pkgParser, pkgParserPkg, true);
-
-//                    Method pkgParser_collectCertificatesMtd = pkgParserCls.getDeclaredMethod("collectCertificates", pkgParserPkg.getClass(), Boolean.TYPE);
-//                    pkgParser_collectCertificatesMtd.invoke(pkgParser, pkgParserPkg, false);
-
-                    Field mSigningDetailsField = pkgParserPkg.getClass().getDeclaredField("mSigningDetails"); // SigningDetails
-                    mSigningDetailsField.setAccessible(true);
-                    Object mSigningDetails = mSigningDetailsField.get(pkgParserPkg);
-
-                    Field infoField = mSigningDetails.getClass().getDeclaredField("signatures");
-                    infoField.setAccessible(true);
-                    Signature[] info = new Signature[this.sign.length];
-                    for (int i = 0; i < this.sign.length; i++) {
-                        info[i] = new Signature(this.sign[i]);
                     }
-                    //  Signature[] info = (Signature[]) infoField.get(mSigningDetails);//获取属性值
-                    infoField.set(mSigningDetails, info);
-                } //else { //双hook
-                    packageInfo.signatures = new Signature[this.sign.length];
-                    for (int i = 0; i < packageInfo.signatures.length; i++) {
-                        packageInfo.signatures[i] = new Signature(this.sign[i]);
-                   // }
                 }
                 return packageInfo;
             }
         }
+        // IPackageManager 中无getPackageArchiveInfo 方法无法代理
         return method.invoke(this.base, objArr);
     }
 

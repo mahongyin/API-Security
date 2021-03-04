@@ -1,6 +1,7 @@
 package cn.android.security;
 
 import android.annotation.SuppressLint;
+import android.app.Application;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
@@ -31,6 +32,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class APISecurity {
@@ -44,28 +46,30 @@ public class APISecurity {
      * @param str
      */
     public static native String sign(String str);
-
+    public static native void verifyApp(Application applicationByReflect);
     public static native boolean init(Context context);
 
     /**
      * 被Native调用的Java方法
      */
     public void javaMethod(String msg) {
-        Log.e("mhyLog错误代码", msg);
+        Log.e("mhyLog错误", msg);
 //        System.exit(1);
     }
 
     public static void verify(Context context) {
-        Log.e("mhyLog", "hash:"+AppSigning.getSignatureHash(context));
+//        Log.e("mhyLog", "hash:" + AppSigning.getSignatureHash(context));
+//        Log.e("mhyLog", "sha1:" + getSignSha1(context));
         //runCommand();
-        Log.e("mhyLog包文件签名", getApkSignatures(context,context.getPackageName()));
-        Log.e("mhyLog已安装签名", getInstalledAPKSignature(context, context.getPackageName()));
+        Log.e("mhyLog包文件", "签名:"+getApkSignatures(context, context.getPackageName()));
+        //Log.e("mhyLog已安装", "签名："+getInstalledAPKSignature(context, context.getPackageName()));
         //通过获取其他应用的签名 如果一样那么被hook了
     }
 
-    /** 防破签名 1
+    /**
+     * 防破签名 1
      * 获取已安装的app签名
-     * */
+     */
     public static String getInstalledAPKSignature(Context context, String packageName) {
         PackageManager pm = context.getPackageManager();
         try {
@@ -74,7 +78,7 @@ public class APISecurity {
                 if (appInfo == null || appInfo.signingInfo == null)
                     return "";
                 return AppSigning.getSignatureString(appInfo.signingInfo.getApkContentsSigners(), AppSigning.SHA1);
-            } else {
+            }else {
                 PackageInfo appInfo = pm.getPackageInfo(packageName.trim(), PackageManager.GET_SIGNATURES);
                 if (appInfo == null || appInfo.signatures == null)
                     return "";
@@ -86,46 +90,34 @@ public class APISecurity {
         return "";
     }
 
-    /** 防破签名 2
+    /**
+     * 防破签名 2
      * C调用Java 从源安装文件获取签名信息
      * 有bug
-     * */
+     */
     public static String getApkSignatures(Context context, String packname) {
-        String path="";
-        if (!TextUtils.isEmpty(packname)) {
-            try {//获取此包安装路径
-                //第一种方法
-                ApplicationInfo applicationInfo = context.getPackageManager().getApplicationInfo(packname, 0);
-                path = applicationInfo.sourceDir;
-                //第二种方法
-//            ApplicationInfo applicationInfo = context.getPackageManager().getPackageInfo(packname, PackageManager.GET_META_DATA).applicationInfo;
-//            path = applicationInfo.publicSourceDir;//sourceDir; // 获取当前apk包的绝对路径
-//                Log.e("mhyLog其他已知包名apk的安装路径", applicationInfo.sourceDir + "&---&" + applicationInfo.publicSourceDir);
-            } catch (PackageManager.NameNotFoundException e) {
-                e.printStackTrace();
-                //第三中方法
-//                path = context.getPackageResourcePath();
-                path= context.getApplicationInfo().sourceDir;
-//                Log.e("mhyLOg在apk中获取自身安装路径", path);
-            }
-        }else {
-        //第三中方法
-//            path= context.getApplicationInfo().sourceDir;
-            path=context.getPackageResourcePath();
-        }
+        String path = getApkPath(context, packname);
         File apkFile = new File(path);
         if (apkFile.exists()) {
             Log.e("mhyLog包安装路径", apkFile.getAbsolutePath());
             PackageManager pm = context.getPackageManager();
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                PackageInfo pkgInfo = pm.getPackageArchiveInfo(apkFile.getAbsolutePath(), PackageManager.GET_SIGNING_CERTIFICATES);
-                if (pkgInfo != null && pkgInfo.signingInfo != null) {
-                    return AppSigning.getSignatureString(pkgInfo.signingInfo.getApkContentsSigners(), AppSigning.SHA1);
+                //TODO 这里获取的signingInfo 为空 猜想是flag不对 但看源码好像 目前只能使【GET_SIGNATURES 对应signatures】
+                PackageInfo packageInfo = pm.getPackageArchiveInfo(path, PackageManager.GET_SIGNING_CERTIFICATES);
+                if (packageInfo != null&&packageInfo.signingInfo!=null) {
+                    Signature[] signatures = packageInfo.signingInfo.getApkContentsSigners();
+                     return AppSigning.getSignatureString(signatures, AppSigning.SHA1);
+                }else {
+                  return AppSigning.getAPKSignatures(path);
                 }
-            } else {
-                PackageInfo pkgInfo = pm.getPackageArchiveInfo(apkFile.getAbsolutePath(), PackageManager.GET_SIGNATURES);
-                if (pkgInfo != null && pkgInfo.signatures != null) {
-                    return AppSigning.getSignatureString(pkgInfo.signatures, AppSigning.SHA1);
+                //如果获取失败就用下面方法喽
+            }else {
+                PackageInfo packageInfo = pm.getPackageArchiveInfo(path, PackageManager.GET_SIGNATURES);
+                if (packageInfo != null) {
+                    Signature[] signatures = packageInfo.signatures;
+                    return AppSigning.getSignatureString(signatures, AppSigning.SHA1);
+                }else {
+                    return AppSigning.showUninstallAPKSignatures(path);
                 }
             }
         }
@@ -133,15 +125,46 @@ public class APISecurity {
     }
 
     /**
+     * //获取此包安装路径
+     */
+    public static String getApkPath(Context context, String packname) {
+        String path = "";
+        if (!TextUtils.isEmpty(packname)) {
+            try {
+                //第一种方法
+                ApplicationInfo applicationInfo = context.getPackageManager().getApplicationInfo(packname, 0);
+                path = applicationInfo.sourceDir;
+                //第二种方法
+//                Log.e("mhyLog其他已知包名apk的安装路径", applicationInfo.sourceDir + "&---&" + applicationInfo.publicSourceDir);
+            } catch (PackageManager.NameNotFoundException e) {
+                e.printStackTrace();
+                try {
+                    ApplicationInfo applicationInfo = context.getPackageManager().getPackageInfo(packname, PackageManager.GET_META_DATA).applicationInfo;
+                    path = applicationInfo.publicSourceDir;//sourceDir; // 获取当前apk包的绝对路径
+                } catch (PackageManager.NameNotFoundException exception) {
+                    exception.printStackTrace();
+                    //第三中方法 本包
+                    path = context.getApplicationInfo().sourceDir;
+                }
+//                Log.e("mhyLOg在apk中获取自身安装路径", path);
+            }
+        } else {
+            //第四中方法 本包
+            path = context.getPackageResourcePath();
+        }
+        return path;
+    }
+
+    /**
      * 手动构建 Context
      */
-    @SuppressLint({"DiscouragedPrivateApi","PrivateApi"})
+    @SuppressLint({"DiscouragedPrivateApi", "PrivateApi"})
     public static Context createContext() throws ClassNotFoundException,
             NoSuchMethodException,
             InvocationTargetException,
             IllegalAccessException,
             NoSuchFieldException,
-            NullPointerException{
+            NullPointerException {
 
         // 反射获取 ActivityThread 的 currentActivityThread 获取 mainThread
         Class activityThreadClass = Class.forName("android.app.ActivityThread");
@@ -156,7 +179,8 @@ public class APISecurity {
         Object mBoundApplicationObj = mBoundApplicationField.get(mainThreadObj);
 
         // 获取 mBoundApplication 的 packageInfo 变量
-        if (mBoundApplicationObj == null) throw new NullPointerException("mBoundApplicationObj 反射值空");
+        if (mBoundApplicationObj == null)
+            throw new NullPointerException("mBoundApplicationObj 反射值空");
         Class mBoundApplicationClass = mBoundApplicationObj.getClass();
         Field infoField = mBoundApplicationClass.getDeclaredField("info");
         infoField.setAccessible(true);
@@ -175,25 +199,58 @@ public class APISecurity {
     }
 
     //需要读取应用列表权限
-    public void getAppList(Context context) {
+    public static List<String> getAppList(Context context) {
+        List<String> list = new ArrayList<>();
         PackageManager pm = context.getPackageManager();
         List<PackageInfo> packages = pm.getInstalledPackages(0);
+//        pm.getInstalledApplications(PackageManager.GET_UNINSTALLED_PACKAGES);// GET_UNINSTALLED_PACKAGES代表已删除，但还有安装目录的
         for (PackageInfo packageInfo : packages) {
             // 判断系统/非系统应用
             if ((packageInfo.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) == 0) {// 非系统应用
-                System.out.println("MainActivity.getAppList, packageInfo=" + packageInfo.packageName);
+                Log.e("mhyLog", "packageInfo=" + packageInfo.packageName);
+                list.add(packageInfo.packageName);
             } else {
                 // 系统应用
             }
         }
+        return list;
     }
 
-    static ArrayList<String> list = new ArrayList<>();
+    /**
+     * 通过已安装app 获取当前app签名
+     */
+    private static String getSignSha1(Context context) {
+        List<PackageInfo> apps;
+        PackageManager pm = context.getPackageManager();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            apps = pm.getInstalledPackages(PackageManager.GET_SIGNING_CERTIFICATES);
+        } else {
+            apps = pm.getInstalledPackages(PackageManager.GET_SIGNATURES);
+        }
+        for (PackageInfo packageinfo : apps) {
+            String packageName = packageinfo.packageName;
+            if (packageName.equals(context.getPackageName())) {
+                Log.e("mhyLog", "packageInfo=" + packageinfo.packageName);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    if (packageinfo.signingInfo != null) {
+                        return AppSigning.getSignatureString(packageinfo.signingInfo.getApkContentsSigners(), AppSigning.SHA1);
+                    }
+                } else {
+                    if (packageinfo.signatures != null) {
+                        return AppSigning.getSignatureString(packageinfo.signatures, AppSigning.SHA1);
+                    }
+                }
+            }
+        }
+        return "";
+    }
+
 
     /**
      * 通过指令获取已安装的包
      */
     private static ArrayList<String> runCommand() {
+        ArrayList<String> list = new ArrayList<>();
         list.clear();
         try {
             Process process = Runtime.getRuntime().exec("pm list package -3");

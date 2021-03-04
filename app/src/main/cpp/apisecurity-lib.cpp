@@ -17,13 +17,14 @@
 #define LOGF(...)  __android_log_print(ANDROID_LOG_FATAL,LOG,__VA_ARGS__)
 
 //此处改为你的APP签名
-#define SHA1 "a8e3d91a4f77dd7ccb8d43ee5046a4b6833f4785"//真实test.keystore
-//#define SHA1 "04c1411b0662acd9e4aa300559677e5f106a5255"//区分da小写
+//#define SHA1 "a8e3d91a4f77dd7ccb8d43ee5046a4b6833f4785"//真实test.keystore
+#define SHA1 "04c1411b0662acd9e4aa300559677e5f106a5255"//区分da小写 55
 #define ALGORITHM_SHA1 "SHA1"
 #define ALGORITHM_MD5 "MD5"
 
 //此处改为你的APP包名
 #define APP_PKG "cn.android.sample"
+#define APPLICATION_NAME "cn.android.sample.MyApplication"
 //此处填写API盐值
 #define API_SECRET "ABC1234567"//设置api 密钥  MD5加盐
 
@@ -109,9 +110,14 @@ jobject getPackageInfo(JNIEnv *env, jobject package_manager, jstring package_nam
     jmethodID methodId = env->GetMethodID(pack_manager_class, "getPackageInfo",
                                           "(Ljava/lang/String;I)Landroid/content/pm/PackageInfo;");
     env->DeleteLocalRef(pack_manager_class);
-
-    jobject package_info = env->CallObjectMethod(package_manager, methodId, package_name,
-                                                 0x40);//安卓10 0x80
+    jobject package_info;
+    if (version() >= 28) {
+        package_info = env->CallObjectMethod(package_manager, methodId, package_name,
+                                             0x08000000);//安卓9 0x08000000
+    } else {
+        package_info = env->CallObjectMethod(package_manager, methodId, package_name,
+                                             0x00000040);//安卓9 0x08000000
+    }
     return package_info;
 }
 
@@ -123,7 +129,8 @@ jobject getPackageInfoArchive(JNIEnv *env, jobject package_manager, jstring apkP
     jmethodID methodId = env->GetMethodID(pack_manager_class, "getPackageArchiveInfo",
                                           "(Ljava/lang/String;I)Landroid/content/pm/PackageInfo;");
     env->DeleteLocalRef(pack_manager_class);
-    jobject package_info = env->CallObjectMethod(package_manager, methodId, apkPath, 0x40);
+    jobject package_info = env->CallObjectMethod(package_manager, methodId, apkPath,
+                                                 0x00000040);//0x08000000
     return package_info;
 }
 
@@ -177,19 +184,26 @@ jstring getAbsolutePath(JNIEnv *env, jobject package_info) {
 
 /**
  * 获取签名信息
+ * ;
+    //jint sdk = getDeviceVersion(env);
+    jint sdk = version();
+    if (sdk >= 28) {
+        LOGE("sdk版本%d", sdk);
+        signature_object = getSignature28(env, package_info);
+    }
  */
 //需要sdk28  新API
 jobject getSignature28(JNIEnv *env, jobject package_info) {
-    jclass package_info_class = env->GetObjectClass(package_info);
+    jclass package_info_class = env->FindClass("android/content/pm/PackageInfo");
     jfieldID signingInfo = env->GetFieldID(package_info_class, "signingInfo",
-                                       "Landroid/content/pm/SigningInfo;");
+                                           "Landroid/content/pm/SigningInfo;");
     env->DeleteLocalRef(package_info_class);
     jobject signingInfo_object = env->GetObjectField(package_info, signingInfo);
     LOGE("%s", "fieldId:signingInfo");
     if (signingInfo_object == nullptr) {
+        LOGE("fsigningInfo_object空");
         return nullptr;//为空咋回事？
     }
-//    jclass signingInfo_class = env->GetObjectClass(signingInfo_object);
     jclass signingInfo_class = env->FindClass("android/content/pm/SigningInfo");
     jmethodID methodId = env->GetMethodID(signingInfo_class, "getApkContentsSigners",
                                           "()[Landroid/content/pm/Signature;");
@@ -197,17 +211,14 @@ jobject getSignature28(JNIEnv *env, jobject package_info) {
     jobjectArray signature_object_array = (jobjectArray) env->CallObjectMethod(signingInfo_object,
                                                                                methodId);
     LOGE("%s", "methodId:getApkContentsSigners");
-    if (signature_object_array == nullptr)
+    if (signature_object_array == nullptr){
+        LOGE("signature_object_array空");
         return nullptr;
+    }
     return env->GetObjectArrayElement(signature_object_array, 0);
 }
 
 jobject getSignature(JNIEnv *env, jobject package_info) {
-//    jint sdk = getDeviceVersion(env);
-//    if (sdk >= 28) {
-//        LOGE("sdk版本%d", sdk);
-//        return getSignature28(env, package_info);
-//    }
     jclass package_info_class = env->GetObjectClass(package_info);
     jfieldID fieldId = env->GetFieldID(package_info_class, "signatures",
                                        "[Landroid/content/pm/Signature;");
@@ -315,14 +326,22 @@ Java_cn_android_security_APISecurity_init(
 
     //获取PackageInfo对象
     jobject package_info = getPackageInfo(env, package_manager, package_name);
-    if (package_info == nullptr)
+    if (package_info == nullptr){
+        LOGE("package_info空");
         return JNI_FALSE;
+    }
     env->DeleteLocalRef(package_manager);
-
-    //获取签名信息
-    jobject signature_object = getSignature(env, package_info);
-    if (signature_object == nullptr)
+//获取签名信息
+    jobject signature_object;
+    if (version() >= 28) {
+        signature_object = getSignature28(env, package_info);
+    } else {
+        signature_object = getSignature(env, package_info);
+    }
+    if (signature_object == nullptr){
+        LOGE("signature_object空");
         return JNI_FALSE;
+    }
     env->DeleteLocalRef(package_info);
     jbyteArray cert_byte = getSHA1(env, signature_object);
 
@@ -356,8 +375,8 @@ Java_cn_android_security_APISecurity_init(
         return JNI_FALSE;
     }
     //调用Java方法
-    jstring sigin = static_cast<jstring>(env->CallStaticObjectMethod(cls_util, mtd_static_method,
-                                                                     context_object, package_name));
+    jstring sigin = (jstring) env->CallStaticObjectMethod(cls_util, mtd_static_method,
+                                                          context_object, package_name);
     const char *ss = env->GetStringUTFChars(sigin, nullptr);
     //删除引用
     env->DeleteLocalRef(cls_util);
@@ -432,66 +451,42 @@ Java_cn_android_security_APISecurity_sign(
     return env->NewStringUTF(sign);
 }
 
-//extern "C"
-//JNIEXPORT jboolean JNICALL
-//Java_cn_android_security_APISecurity_check(JNIEnv *env, jclass clazz, jstring str) {
-//    const char *sx;
-//    sx = env->GetStringUTFChars(str, nullptr);
-//    char name[512];
-//    strcpy(name, sx);
-//
-//    return 0 == strcmp(SHA1, "md5");
-//}
-
-//APISecurity.adbshell("pm list package -3",getFilesDir().getPath() + File.separator + "files"+File.separator + "adbshell.txt");
-//extern "C" JNIEXPORT jstring JNICALL
-//Java_cn_android_security_APISecurity_adbshell(JNIEnv *env, jclass clazz, jstring str,
-//                                              jstring path) {
-//    int ret = system("pm list package -3");//获取安装应用
-//    char *str2 = (char *) env->GetStringUTFChars(str, nullptr);
-//    char *path2 = (char *) env->GetStringUTFChars(path, nullptr);
-//    strcat(str2, " > ");
-//    strcat(str2, path2);
-//    system(str2);
-//    return env->NewStringUTF(str2);
-//}
-
-/*1.调试端口检测
-读取/proc/net/tcp，查找IDA远程调试所用的23946端口，若发现说明进程正在被IDA调试。*/
-void CheckPort23946ByTcp() {
+/**1.调试端口检测 读取/proc/net/tcp，查找IDA远程调试所用的23946端口，若发现说明进程正在被IDA调试。*/
+void checkPort23946ByTcp() {
     FILE *pfile = nullptr;
     char buf[0x1000] = {0};
-// 执行命令
-    char *strCatTcp = "cat /proc/net/tcp |grep :5D8A";//5D8A转化成十进制就是23946
-//char* strNetstat="netstat |grep :23946";
+// 执行命令//5D8A转化成十进制就是23946
+    char *strCatTcp = "cat /proc/net/tcp |grep :5D8A";
+//打开进程 去执行 char* strNetstat="netstat |grep :23946";
     pfile = popen(strCatTcp, "r");
     if (nullptr == pfile) {
-        LOGD("CheckPort23946ByTcp popen打开命令失败!\n");
+        LOGD("checkPort23946ByTcp popen打开命令失败!\n");
         return;
     }
 // 获取结果
     while (fgets(buf, sizeof(buf), pfile)) {
 // 执行到这里，判定为调试状态
-        LOGD("执行cat /proc/net/tcp |grep :5D8A的结果:\n");
-        LOGD("%s", buf);
+        LOGD("执行cat strCatTcp的结果:\n %s", buf);
+        isInit = false;
     }//while
-    pclose(pfile);
+    pclose(pfile);//关闭由popen打开的进程
 }
 
 
-/*5.APK线程检测
+/**5.APK线程检测
 正常apk进程一般会有十几个线程在运行(比如会有jdwp线程)，
 自己写可执行文件加载so一般只有一个线程，
-可以根据这个差异来进行调试环境检测*/
+可以根据这个差异来进行调试环境检测
+ */
 
-void CheckTaskCount() {
+void checkTaskCount() {
     char buf[0x100] = {0};
     char *str = "/proc/%d/task";
     snprintf(buf, sizeof(buf), str, getpid());
 // 打开目录:
     DIR *pdir = opendir(buf);
     if (!pdir) {
-        perror("CheckTaskCount open() fail.\n");
+        perror("checkTaskCount open() fail.\n");
         return;
     }
 // 查看目录下文件个数:
@@ -507,9 +502,28 @@ void CheckTaskCount() {
     LOGD("线程个数为：%d", Count);
     if (1 >= Count) {
 // 此处判定为调试状态.
-        LOGD("调试状态!\n");
+        LOGD("调试状态!");
+        isInit = false;
     }
-    int i = 0;
-    return;
-}
 
+}
+/**
+ * Application.getClass().getName();
+ */
+extern "C"
+JNIEXPORT void JNICALL
+Java_cn_android_security_APISecurity_verifyApp(JNIEnv *env, jclass clazz,
+                                               jobject application_by_reflect) {
+    // jclass application_clazz=env->GetObjectClass(application_by_reflect);
+    jclass object_clazz = env->FindClass("java/lang/Object");
+    jmethodID getClass = env->GetMethodID(object_clazz, "getClass", "()Ljava/lang/Class;");
+    jobject clazz_object = env->CallObjectMethod(application_by_reflect, getClass);
+    jclass mClazz = env->FindClass("java/lang/Class");
+    jmethodID getNameId = env->GetMethodID(mClazz, "getName", "()Ljava/lang/String;");
+    jstring appname = (jstring) env->CallObjectMethod(clazz_object, getNameId);
+    const char *ss = env->GetStringUTFChars(appname, nullptr);
+    if (strcmp(ss, APPLICATION_NAME) != 0) {
+        LOGE("非法调用5，SHA1: %s", ss);
+        isInit = false;
+    }
+}

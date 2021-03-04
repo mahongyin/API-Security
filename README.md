@@ -53,7 +53,7 @@ Android API Security(.so)，安卓APP/API安全加密so库，防二次打包，�
  APISecurity.init(context);
  //计算签名
  String val = "POST https://www.xxx.com/login?id=1&pwd=xxx......";
- String sign = MGAPISecurity.sign(aptStr)
+ String sign = APISecurity.sign(aptStr)
 ```
  App.hook(context);//hook签名验证
 //在这里 重置PackageManager 只要在验证前重置即可
@@ -409,9 +409,18 @@ JNIEXPORT jstring JNICALL Java_com_test_JniTest_testChineseOut
 
 
 
-
-SystemProperties.getInt("ro.build.version.sdk", 0);
+ // 获取jdk位数
+        String bits = System.getProperty("sun.arch.data.model");
+        String ver = System.getProperty("ro.build.version.sdk");
+        // 获取os名称
+        String ops = System.getProperty("os.name");
+        logger.info("jdk bits=" + bits);
+        logger.info("option sysetm=" + ops);
 Build.VERSION.SDK_INT > Build.VERSION_CODES.Q
+SystemProperties.getInt("ro.build.version.sdk", 0);
+
+
+
 ###C++代码取Android系统版本号：
 ```
 #include <jni.h>

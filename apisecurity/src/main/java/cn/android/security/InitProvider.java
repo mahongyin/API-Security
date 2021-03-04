@@ -39,7 +39,7 @@ public class InitProvider extends ContentProvider {
         }
         Log.e("mhyLog", "initContentProvider:");
 //        chekSignature(application);
-        checkApplication();
+        //checkApplication();
         return true;
     }
     void chekSignature(Context application){
@@ -54,11 +54,13 @@ public class InitProvider extends ContentProvider {
     /**
      * 校验 application
      */
+
     private boolean checkApplication(){
         //在这里使用反射 获取比较靠谱 如果 被替换换 就查出来了
         Application nowApplication = getApplicationByReflect();
-        String trueApplicationName = "MyApplication";//自己的Application类名 防止替换
-        String nowApplicationName = nowApplication.getClass().getSimpleName();
+        APISecurity.verifyApp(nowApplication);
+        String trueApplicationName = "cn.android.sample.MyApplication";//getSimpleName()自己的Application类名 防止替换
+        String nowApplicationName = nowApplication.getClass().getName();
         Log.e("mhyLogAppName", "反射获取:"+nowApplicationName);
         return trueApplicationName.equals(nowApplicationName);
     }
