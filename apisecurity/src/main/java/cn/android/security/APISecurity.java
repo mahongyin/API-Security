@@ -61,7 +61,7 @@ public class APISecurity {
 //        Log.e("mhyLog", "hash:" + AppSigning.getSignatureHash(context));
 //        Log.e("mhyLog", "sha1:" + getSignSha1(context));
         //runCommand();
-        Log.e("mhyLog包文件", "签名:"+getApkSignatures(context, context.getPackageName()));
+       // Log.e("mhyLog包文件", "签名:"+getApkSignatures(context, context.getPackageName()));
         //Log.e("mhyLog已安装", "签名："+getInstalledAPKSignature(context, context.getPackageName()));
         //通过获取其他应用的签名 如果一样那么被hook了
     }

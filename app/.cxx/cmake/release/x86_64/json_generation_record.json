@@ -13,6 +13,18 @@
   },
   {
     "level": "INFO",
+    "message": "Trying to locate CMake in local SDK repository.",
+    "file": "G:\\AProject\\Mahy\\API-Security\\app\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
+    "message": "- CMake found in SDK at \u0027D:\\android-sdk-windows\\cmake\\3.10.2.4988404\u0027 had version \u00273.10.2\u0027",
+    "file": "G:\\AProject\\Mahy\\API-Security\\app\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
     "message": "JSON \u0027G:\\AProject\\Mahy\\API-Security\\app\\.cxx\\cmake\\release\\x86_64\\android_gradle_build.json\u0027 was up-to-date",
     "file": "G:\\AProject\\Mahy\\API-Security\\app\\CMakeLists.txt",
     "tag": "release|x86_64"

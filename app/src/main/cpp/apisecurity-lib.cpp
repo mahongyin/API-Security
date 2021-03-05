@@ -16,12 +16,12 @@
 #define LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG,__VA_ARGS__)
 #define LOGF(...)  __android_log_print(ANDROID_LOG_FATAL,LOG,__VA_ARGS__)
 
-//此处改为你的APP签名
-//#define SHA1 "a8e3d91a4f77dd7ccb8d43ee5046a4b6833f4785"//真实test.keystore
-#define SHA1 "04c1411b0662acd9e4aa300559677e5f106a5255"//区分da小写 55
 #define ALGORITHM_SHA1 "SHA1"
 #define ALGORITHM_MD5 "MD5"
 
+//此处改为你的APP签名
+#define SHA1 "a8e3d91a4f77dd7ccb8d43ee5046a4b6833f4785"//真实test.keystore
+//#define SHA1 "04c1411b0662acd9e4aa300559677e5f106a5255"//区分da小写 55
 //此处改为你的APP包名
 #define APP_PKG "cn.android.sample"
 #define APPLICATION_NAME "cn.android.sample.MyApplication"
@@ -508,7 +508,7 @@ void checkTaskCount() {
 
 }
 /**
- * Application.getClass().getName();
+ * Application.getClass().getName(); 验证application是否被替换
  */
 extern "C"
 JNIEXPORT void JNICALL

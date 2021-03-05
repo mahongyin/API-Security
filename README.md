@@ -551,3 +551,90 @@ versionI() {
  net. bt. name=Android （系统名称）
  dalvik.vm.stack-trace-file=/data/anr/traces.txt
 ```
+
+Class.newInstance()；只能反射无参的构造器，需要构造器可见；
+Constructor.newInstance()；可以反射任何构造器，可以反射私有构造器
+
+```
+public class Student {
+    private String name;
+    private int age;
+    private double score;
+
+    public Student() {}
+    private Student(String name, int age, double score) {
+        this.name = name;
+        this.age = age;
+        this.score = score;
+    }
+}
+```
+```
+public class Client {
+    public static void main(String[] args) throws Exception {
+        Class clazz = Student.class;
+        //利用Class.newInstance()
+        Object object1 = clazz.newInstance();
+        System.out.println(object1);
+        //利用Constructor.newInstance()反射无参构造方法
+        Constructor cons1 = clazz.getDeclaredConstructor();
+        Object object2 = cons1.newInstance();
+        //利用Constructor.newInstance()反射私有构造方法
+        Constructor cons2 = clazz.getDeclaredConstructor(String.class,Integer.TYPE,Double.TYPE);
+        if(!cons2.isAccessible())
+            cons2.setAccessible(true);
+        Object object3 = cons2.newInstance("张三",12,88.5);
+    }
+}
+
+```
+Java除了这两这种方法创建对象外，还有三个方式，使用new 关键字，使用对象克隆clone()方法，以及使用反序列化（ObjectInputStream）的 readObject() 方法。
+
+使用 clone()方法：类必须实现Cloneable接口，并重写其clone()方法
+使用反序列化ObjectInputStream 的readObject()方法：类必须实现 Serializable接口
+```
+public class Student implements Serializable,Cloneable{
+    private static final long serialVersionUID = -2263090506226622866L;
+
+    private String name;
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Student student = (Student) o;
+
+        return name != null ? name.equals(student.name) : student.name == null;
+    }
+
+    @Override
+    public int hashCode() {
+        return name != null ? name.hashCode() : 0;
+    }
+}
+
+public class Client {
+    public static void main(String[] args) throws Exception {
+        //使用new关键字创建对象
+        Student student1 = new Student();
+
+        //使用clone()方法：类必须实现Cloneable接口，并重写其clone()方法
+        Student student2 = (Student) student1.clone();
+
+        // 使用 反序列化ObjectInputStream的readObject()方法：类必须实现 Serializable接口
+        // 序列化
+        ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream("test.txt"));
+        objectOutputStream.writeObject(student1);
+        // 反序列化
+        ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream("test.txt"));
+        Student student3 = (Student) objectInputStream.readObject();
+    }
+}
+```
+记得之前写过一篇 单例模式 的博客，其中最后就提到序列化也会破坏单例，就是因为反序列化会创建新的对象，所以我们在单例模式中要有readResolve()方法。

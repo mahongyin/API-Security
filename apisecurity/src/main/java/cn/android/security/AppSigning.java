@@ -58,7 +58,8 @@ public class AppSigning {
         String fingerprint = "error!";
         if (sigs.length > 0) {
             for (Signature sig : sigs) {
-                Log.e("mhyLog", "Signature64:" + Base64.encodeToString(sig.toCharsString().getBytes(), Base64.DEFAULT));
+//                Log.e("mhyLog", "Signature64:" + Base64.encodeToString(sig.toCharsString().getBytes(), Base64.DEFAULT));
+                Log.e("mhyLog", "SignatureHash:" + sig.toCharsString().hashCode());
             }
             byte[] hexBytes = sigs[0].toByteArray();
             try {

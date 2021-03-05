@@ -21,19 +21,19 @@ public class MainActivity extends AppCompatActivity {
 
         tv = findViewById(R.id.sample_text);
 
+        APISecurity.verify(getApplicationContext());
+
         if(APISecurity.init(getApplicationContext())){
             tv.setText("初始化ok");
         }else {
             tv.setText("初始化fail");
         }
-        APISecurity.verify(getApplicationContext());
+
         findViewById(R.id.btnTest).setOnClickListener(new View.OnClickListener() {
             @SuppressLint("SetTextI18n")
             @Override
             public void onClick(View v) {
                 //API签名字符串
-                String val = "POST https://www.xxx.com/login?id=1&pwd=xxx......";
-                //计算签名
                 String aptStr="123456";
                 tv.setText("Sign:" + APISecurity.sign(aptStr));
             }
