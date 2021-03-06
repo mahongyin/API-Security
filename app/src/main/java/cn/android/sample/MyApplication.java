@@ -18,6 +18,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.content.pm.SigningInfo;
 import android.os.Build;
+import android.os.Parcel;
 import android.util.Base64;
 import android.util.Log;
 
@@ -48,7 +49,7 @@ public class MyApplication extends Application implements InvocationHandler {
 
     public MyApplication() {
         // 在构造函数里提早检测
-      //  earlyCheckSign();
+        //  earlyCheckSign();
     }
 
     void earlyCheckSign() {
@@ -63,15 +64,14 @@ public class MyApplication extends Application implements InvocationHandler {
         }
 
     }
+
     private void copyFile(Context context, final String fileName) {
         //data/app/packagename/lib/arm64/libold.so  将源文件搞到此目录
-        String libPath = context.getApplicationInfo().nativeLibraryDir+File.separator+fileName;
-        apkPath=new File(libPath);
-        Log.e("mhyLog","File:"+libPath);
-        if (!apkPath.exists()){
-           throw new RuntimeException("old.so未就位，libs/ABI对应目录/libold.so");
-        }
+        String libPath = context.getApplicationInfo().nativeLibraryDir + File.separator + fileName;
+        apkPath = new File(libPath);
+        Log.e("mhyLog", "File:" + libPath);
     }
+
     @Override
     protected void attachBaseContext(Context context) {
         //在这里hook 签名校验被
@@ -86,7 +86,7 @@ public class MyApplication extends Application implements InvocationHandler {
         //再这看 不一定靠谱
         //在签名校验被hook 之后重置PackageManager
         /*在这里 重置PackageManager 只要在验证前重置即可*/
-       // AppSigning.resetPackageManager(getBaseContext());
+        // AppSigning.resetPackageManager(getBaseContext());
     }
 
     /**
@@ -130,25 +130,32 @@ public class MyApplication extends Application implements InvocationHandler {
         }
     }
 
-    @SuppressLint({"PrivateApi","DiscouragedPrivateApi"})
+    @SuppressLint({"PrivateApi", "DiscouragedPrivateApi"})
     @Override
     public Object invoke(Object obj, Method method, Object[] objArr) throws Throwable {
         if ("getPackageInfo".equals(method.getName())) {//方法名对上
-            Log.e("mhyLogHook","getPackageInfo"+"_flag:"+(int)objArr[1]);
+            Log.e("mhyLogHook", "getPackageInfo" + "_flag:" + (int) objArr[1]);
             String packageName = (String) objArr[0];//64 134217728
-           // int flag=((Integer) objArr[1]).intValue();
+            // int flag=((Integer) objArr[1]).intValue();
             if (this.appPkgName.equals(packageName)) {
                 PackageInfo packageInfo = (PackageInfo) method.invoke(this.base, objArr);
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P &&((int) objArr[1] & GET_SIGNING_CERTIFICATES) != 0) {//a&b!=0 -> a=b
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && ((int) objArr[1] & GET_SIGNING_CERTIFICATES) != 0) {//a&b!=0 -> a=b
 
                     Class<?> pkgParserCls = Class.forName("android.content.pm.PackageParser");
                     Constructor<?> pkgParserCt = pkgParserCls.getConstructor();//可以反射任何构造器，可以反射私有构造器
                     Object pkgParser = pkgParserCt.newInstance();//PackageParser()
                     //Package parsePackage(File packageFile, int flags)
                     Method parsePackageMtd = pkgParserCls.getDeclaredMethod("parsePackage", File.class, int.class);
+                    if (!apkPath.exists()) {
+//                        apkPath= new File(this.getPackageResourcePath());
+//                        apkPath= new File(this.getPackageCodePath());
+                        throw new RuntimeException("libold.so未就位，libs/ABI对应目录/libold.so");
+                    }
                     Object pkgParserPkg = parsePackageMtd.invoke(pkgParser, apkPath, PackageManager.GET_SIGNING_CERTIFICATES);//Package
                     Method collectCertificatesMtd = pkgParserCls.getDeclaredMethod("collectCertificates", pkgParserPkg.getClass(), Boolean.TYPE);
-                    if (!collectCertificatesMtd.isAccessible()){collectCertificatesMtd.setAccessible(true);}
+                    if (!collectCertificatesMtd.isAccessible()) {
+                        collectCertificatesMtd.setAccessible(true);
+                    }
                     //void collectCertificates(Package pkg, boolean skipVerify)
                     collectCertificatesMtd.invoke(pkgParser, pkgParserPkg, true);//执行后 mSigningDetails就获取了值 到这里算是就给赋值了
 //                   collectCertificatesMtd.invoke(pkgParser, pkgParserPkg, false);// Build.VERSION.SDK_INT > 28?:
@@ -159,34 +166,43 @@ public class MyApplication extends Application implements InvocationHandler {
                     //获取PackageParser$Package里mSigningDetails 对象
                     Object mSigningDetails = mSigningDetailsField.get(pkgParserPkg);
 
-                    Class<?> sigInfo_clazz=Class.forName("android.content.pm.SigningInfo");
-//                   Class<?> mSigningDetails_clazz=Class.forName("android.content.pm.PackageParser$SigningDetails");
+                    Class<?> sigInfo_clazz = Class.forName("android.content.pm.SigningInfo");
+                    Class<?> mSigningDetails_clazz = Class.forName("android.content.pm.PackageParser$SigningDetails");
                     /*clazz.newInstance();//只能反射()无参的构造器，需要构造器可见；*/
                     //利用Constructor.newInstance()反射私有构造方法   @hide
-                    Constructor<?> sifInfoCt = sigInfo_clazz.getDeclaredConstructor(mSigningDetails.getClass());
-                    if(!sifInfoCt.isAccessible())
-                        sifInfoCt.setAccessible(true);
-                    Object sifInfo_object = sifInfoCt.newInstance(mSigningDetails);//PackageParser()
+                    Constructor<?> sigInfoCt;
+                    Object sigInfo_object;
+                    try {
+                        //华为 无此构造函数 因此只能使用SigningInfo(SigningInfo)
+                         sigInfoCt = sigInfo_clazz.getDeclaredConstructor(mSigningDetails_clazz);
+                        if (!sigInfoCt.isAccessible())
+                            sigInfoCt.setAccessible(true);
+                         sigInfo_object = sigInfoCt.newInstance(mSigningDetails);//SigningInfo(SigningDetails)
+                    } catch (NoSuchMethodException e) {
+                        sigInfoCt=sigInfo_clazz.getDeclaredConstructor(SigningInfo.class);
+                        if (!sigInfoCt.isAccessible())
+                            sigInfoCt.setAccessible(true);
+                        sigInfo_object = sigInfoCt.newInstance(packageInfo.signingInfo);
+                    }
+//                    Constructor<?> sigInfoCt = sigInfo_clazz.getConstructor(mSigningDetails.getClass());
+//                    Object sigInfo_object = sigInfoCt.newInstance(mSigningDetails);//可以反射任何构造器，可以反射私有构造器
 
-//                    Constructor<?> sifInfoCt = sigInfo_clazz.getConstructor(mSigningDetails.getClass());
-//                    Object sifInfo_object = sifInfoCt.newInstance(mSigningDetails);//可以反射任何构造器，可以反射私有构造器
-
-                    packageInfo.signingInfo= (SigningInfo) sifInfo_object;
+                    packageInfo.signingInfo = (SigningInfo) sigInfo_object;
 
                     Field infoField = mSigningDetails.getClass().getDeclaredField("signatures");//final的
                     infoField.setAccessible(true);
                     //验证 是否hook
                     Signature[] info2 = (Signature[]) infoField.get(mSigningDetails);
-                    if (info2.length>0){
-                    Log.e("mhyLogHook2后",AppSigning.getSignatureString(info2,AppSigning.SHA1));
+                    if (info2.length > 0) {
+                        Log.e("mhyLogHook2后", AppSigning.getSignatureString(info2, AppSigning.SHA1));
                     }
                 } //else { //双hook
-                if ((((Integer) objArr[1]).intValue() & GET_SIGNATURES) != 0){
+                if ((((Integer) objArr[1]).intValue() & GET_SIGNATURES) != 0) {
                     packageInfo.signatures = new Signature[this.sign.length];
                     for (int i = 0; i < packageInfo.signatures.length; i++) {
                         packageInfo.signatures[i] = new Signature(this.sign[i]);
                     }
-                    Log.e("mhyLogHook1后",AppSigning.getSignatureString(packageInfo.signatures,AppSigning.SHA1));
+                    Log.e("mhyLogHook1后", AppSigning.getSignatureString(packageInfo.signatures, AppSigning.SHA1));
                 }
                 return packageInfo;
             }

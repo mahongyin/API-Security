@@ -5,9 +5,9 @@
     "environmentVariables": []
   },
   "cmake": {
-    "cmakeArtifactsBaseFolder": "G:\\AProject\\Mahy\\API-Security\\app\\.cxx\\cmake\\debug\\x86",
-    "cmakeServerLogFile": "G:\\AProject\\Mahy\\API-Security\\app\\.cxx\\cmake\\debug\\x86\\cmake_server_log.txt",
-    "cmakeWrappingBaseFolder": "G:\\AProject\\Mahy\\API-Security\\app\\.cxx\\cxx\\debug\\x86",
+    "cmakeArtifactsBaseFolder": "L:\\AProject\\Mahy\\API-Security\\app\\.cxx\\cmake\\debug\\x86",
+    "cmakeServerLogFile": "L:\\AProject\\Mahy\\API-Security\\app\\.cxx\\cmake\\debug\\x86\\cmake_server_log.txt",
+    "cmakeWrappingBaseFolder": "L:\\AProject\\Mahy\\API-Security\\app\\.cxx\\cxx\\debug\\x86",
     "effectiveConfiguration": {
       "name": "traditional-android-studio-cmake-environment",
       "description": "Composite reified CMakeSettings configuration",
@@ -15,7 +15,7 @@
       "inheritEnvironments": [
         "ndk"
       ],
-      "buildRoot": "G:\\AProject\\Mahy\\API-Security\\app\\.cxx\\cmake\\debug\\x86",
+      "buildRoot": "L:\\AProject\\Mahy\\API-Security\\app\\.cxx\\cmake\\debug\\x86",
       "cmakeToolchain": "D:\\android-sdk-windows\\ndk\\20.1.5948944\\build\\cmake\\android.toolchain.cmake",
       "cmakeExecutable": "D:\\android-sdk-windows\\cmake\\3.10.2.4988404\\bin\\cmake.exe",
       "variables": [
@@ -53,7 +53,7 @@
         },
         {
           "name": "CMAKE_LIBRARY_OUTPUT_DIRECTORY",
-          "value": "G:\\AProject\\Mahy\\API-Security\\app\\build\\intermediates\\cmake\\debug\\obj\\x86"
+          "value": "L:\\AProject\\Mahy\\API-Security\\app\\build\\intermediates\\cmake\\debug\\obj\\x86"
         },
         {
           "name": "CMAKE_MAKE_PROGRAM",
@@ -70,14 +70,14 @@
       ]
     }
   },
-  "cxxBuildFolder": "G:\\AProject\\Mahy\\API-Security\\app\\.cxx\\cmake\\debug\\x86",
+  "cxxBuildFolder": "L:\\AProject\\Mahy\\API-Security\\app\\.cxx\\cmake\\debug\\x86",
   "info": {
     "abi": "X86",
     "bitness": 32,
     "deprecated": false,
     "default": true
   },
-  "originalCxxBuildFolder": "G:\\AProject\\Mahy\\API-Security\\app\\.cxx\\cmake\\debug\\x86",
+  "originalCxxBuildFolder": "L:\\AProject\\Mahy\\API-Security\\app\\.cxx\\cmake\\debug\\x86",
   "variant": {
     "buildSystemArgumentList": [],
     "buildTargetSet": [],
@@ -95,12 +95,12 @@
         "ninjaExe": "D:\\android-sdk-windows\\cmake\\3.10.2.4988404\\bin\\ninja.exe"
       },
       "cmakeToolchainFile": "D:\\android-sdk-windows\\ndk\\20.1.5948944\\build\\cmake\\android.toolchain.cmake",
-      "cxxFolder": "G:\\AProject\\Mahy\\API-Security\\app\\.cxx",
+      "cxxFolder": "L:\\AProject\\Mahy\\API-Security\\app\\.cxx",
       "gradleModulePathName": ":app",
-      "intermediatesFolder": "G:\\AProject\\Mahy\\API-Security\\app\\build\\intermediates",
-      "makeFile": "G:\\AProject\\Mahy\\API-Security\\app\\CMakeLists.txt",
-      "moduleBuildFile": "G:\\AProject\\Mahy\\API-Security\\app\\build.gradle",
-      "moduleRootFolder": "G:\\AProject\\Mahy\\API-Security\\app",
+      "intermediatesFolder": "L:\\AProject\\Mahy\\API-Security\\app\\build\\intermediates",
+      "makeFile": "L:\\AProject\\Mahy\\API-Security\\app\\CMakeLists.txt",
+      "moduleBuildFile": "L:\\AProject\\Mahy\\API-Security\\app\\build.gradle",
+      "moduleRootFolder": "L:\\AProject\\Mahy\\API-Security\\app",
       "ndkDefaultAbiList": [
         "ARMEABI_V7A",
         "ARM64_V8A",
@@ -163,12 +163,13 @@
       ],
       "ndkVersion": "20.1.5948944",
       "project": {
-        "compilerSettingsCacheFolder": "G:\\AProject\\Mahy\\API-Security\\.cxx",
-        "cxxFolder": "G:\\AProject\\Mahy\\API-Security\\.cxx",
+        "compilerSettingsCacheFolder": "L:\\AProject\\Mahy\\API-Security\\.cxx",
+        "cxxFolder": "L:\\AProject\\Mahy\\API-Security\\.cxx",
+        "ideBuildTargetAbi": "x86",
         "isBuildOnlyTargetAbiEnabled": true,
         "isCmakeBuildCohabitationEnabled": false,
         "isNativeCompilerSettingsCacheEnabled": false,
-        "rootBuildGradleFolder": "G:\\AProject\\Mahy\\API-Security",
+        "rootBuildGradleFolder": "L:\\AProject\\Mahy\\API-Security",
         "sdkFolder": "D:\\android-sdk-windows"
       },
       "splitsAbiFilterSet": [],
@@ -184,13 +185,10 @@
         "SYSTEM": {}
       }
     },
-    "objFolder": "G:\\AProject\\Mahy\\API-Security\\app\\build\\intermediates\\cmake\\debug\\obj",
+    "objFolder": "L:\\AProject\\Mahy\\API-Security\\app\\build\\intermediates\\cmake\\debug\\obj",
     "variantName": "debug",
     "validAbiList": [
-      "ARMEABI_V7A",
-      "ARM64_V8A",
-      "X86",
-      "X86_64"
+      "X86"
     ]
   }
 }

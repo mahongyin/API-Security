@@ -2,18 +2,18 @@
   "buildFiles": [
     "D:\\android-sdk-windows\\ndk\\20.1.5948944\\build\\cmake\\platforms.cmake",
     "D:\\android-sdk-windows\\ndk\\20.1.5948944\\build\\cmake\\android.toolchain.cmake",
-    "G:\\AProject\\Mahy\\API-Security\\app\\CMakeLists.txt"
+    "L:\\AProject\\Mahy\\API-Security\\app\\CMakeLists.txt"
   ],
   "cleanCommands": [
-    "D:\\android-sdk-windows\\cmake\\3.10.2.4988404\\bin\\ninja.exe -C \"G:\\AProject\\Mahy\\API-Security\\app\\.cxx\\cmake\\debug\\arm64-v8a\" clean"
+    "D:\\android-sdk-windows\\cmake\\3.10.2.4988404\\bin\\ninja.exe -C \"L:\\AProject\\Mahy\\API-Security\\app\\.cxx\\cmake\\debug\\arm64-v8a\" clean"
   ],
-  "buildTargetsCommand": "D:\\android-sdk-windows\\cmake\\3.10.2.4988404\\bin\\ninja.exe  -C \"G:\\AProject\\Mahy\\API-Security\\app\\.cxx\\cmake\\debug\\arm64-v8a\" {LIST_OF_TARGETS_TO_BUILD}",
+  "buildTargetsCommand": "D:\\android-sdk-windows\\cmake\\3.10.2.4988404\\bin\\ninja.exe  -C \"L:\\AProject\\Mahy\\API-Security\\app\\.cxx\\cmake\\debug\\arm64-v8a\" {LIST_OF_TARGETS_TO_BUILD}",
   "libraries": {
     "apisecurity-lib-Debug-arm64-v8a": {
       "artifactName": "apisecurity-lib",
-      "buildCommand": "D:\\android-sdk-windows\\cmake\\3.10.2.4988404\\bin\\ninja.exe -C \"G:\\AProject\\Mahy\\API-Security\\app\\.cxx\\cmake\\debug\\arm64-v8a\" apisecurity-lib",
+      "buildCommand": "D:\\android-sdk-windows\\cmake\\3.10.2.4988404\\bin\\ninja.exe -C \"L:\\AProject\\Mahy\\API-Security\\app\\.cxx\\cmake\\debug\\arm64-v8a\" apisecurity-lib",
       "abi": "arm64-v8a",
-      "output": "G:\\AProject\\Mahy\\API-Security\\app\\build\\intermediates\\cmake\\debug\\obj\\arm64-v8a\\libapisecurity-lib.so"
+      "output": "L:\\AProject\\Mahy\\API-Security\\app\\build\\intermediates\\cmake\\debug\\obj\\arm64-v8a\\libapisecurity-lib.so"
     }
   }
 }
