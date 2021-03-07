@@ -210,7 +210,7 @@ public class AppSigning {
 
                 if (Build.VERSION.SDK_INT >= 28){
                     Method pkgParser_collectCertificatesMtd = pkgParserCls.getDeclaredMethod("collectCertificates", pkgParserPkg.getClass(), Boolean.TYPE);//true skipVerify
-                    pkgParser_collectCertificatesMtd.invoke(pkgParser, pkgParserPkg, Build.VERSION.SDK_INT >= 28);
+                    pkgParser_collectCertificatesMtd.invoke(pkgParser, pkgParserPkg, Build.VERSION.SDK_INT >= Build.VERSION_CODES.P);
 
 //                    Method pkgParser_collectCertificatesMtd = pkgParserCls.getDeclaredMethod("collectCertificates", pkgParserPkg.getClass(), Boolean.TYPE);
 //                    pkgParser_collectCertificatesMtd.invoke(pkgParser, pkgParserPkg, false);
@@ -252,6 +252,9 @@ public class AppSigning {
         return null;
     }
 
+    /**
+     * 所以我们需要考虑读取data/app/packagename-1(2)/base.apk，硬编码读取这个apk的信息，可以考虑用PackageParser来读取
+     */
     public static String showUninstallAPKSignatures(String apkPath) {
         String PATH_PackageParser = "android.content.pm.PackageParser";
         try {
