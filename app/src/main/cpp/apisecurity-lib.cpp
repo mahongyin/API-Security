@@ -31,7 +31,15 @@
 
 static bool isInit = false;
 static char *secret;
-
+//当动态库被加载时这个函数被系统调用
+JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved){
+    LOGI("JNI_OnLoad");
+    return JNI_VERSION_1_4;
+}
+//当动态库被卸载时这个函数被系统调用
+JNIEXPORT void JNICALL JNI_OnUnload(JavaVM* vm, void* reserved){
+    LOGI("JNI_OnUnload");
+}
 jint version() {
     // 1. 获取 SDK 版本号 , 存储于 C 字符串 sdk_verison_str 中
     char sdk[128] = "0";
