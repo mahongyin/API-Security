@@ -46,6 +46,7 @@ public class APISecurity {
      * @param str
      */
     public static native String sign(String str);
+    public static native String getRelayPackName();
     public static native void verifyApp(Application applicationByReflect);
     public static native boolean init(Context context);
 
@@ -151,54 +152,14 @@ public class APISecurity {
         } else {
             //第四中方法 本包
             path = context.getPackageResourcePath();
+            //第五种方法
+//            path = context.getPackageCodePath();
         }
         return path;
     }
 
-    /**
-     * 手动构建 Context
-     */
-    @SuppressLint({"DiscouragedPrivateApi", "PrivateApi"})
-    public static Context createContext() throws ClassNotFoundException,
-            NoSuchMethodException,
-            InvocationTargetException,
-            IllegalAccessException,
-            NoSuchFieldException,
-            NullPointerException {
 
-        // 反射获取 ActivityThread 的 currentActivityThread 获取 mainThread
-        Class activityThreadClass = Class.forName("android.app.ActivityThread");
-        Method currentActivityThreadMethod =
-                activityThreadClass.getDeclaredMethod("currentActivityThread");
-        currentActivityThreadMethod.setAccessible(true);
-        Object mainThreadObj = currentActivityThreadMethod.invoke(null);
-
-        // 反射获取 mainThread 实例中的 mBoundApplication 字段
-        Field mBoundApplicationField = activityThreadClass.getDeclaredField("mBoundApplication");
-        mBoundApplicationField.setAccessible(true);
-        Object mBoundApplicationObj = mBoundApplicationField.get(mainThreadObj);
-
-        // 获取 mBoundApplication 的 packageInfo 变量
-        if (mBoundApplicationObj == null)
-            throw new NullPointerException("mBoundApplicationObj 反射值空");
-        Class mBoundApplicationClass = mBoundApplicationObj.getClass();
-        Field infoField = mBoundApplicationClass.getDeclaredField("info");
-        infoField.setAccessible(true);
-        Object packageInfoObj = infoField.get(mBoundApplicationObj);
-
-        // 反射调用 ContextImpl.createAppContext(ActivityThread mainThread, LoadedApk packageInfo)
-        if (mainThreadObj == null) throw new NullPointerException("mainThreadObj 反射值空");
-        if (packageInfoObj == null) throw new NullPointerException("packageInfoObj 反射值空");
-        Method createAppContextMethod = Class.forName("android.app.ContextImpl").getDeclaredMethod(
-                "createAppContext",
-                mainThreadObj.getClass(),
-                packageInfoObj.getClass());
-        createAppContextMethod.setAccessible(true);
-        return (Context) createAppContextMethod.invoke(null, mainThreadObj, packageInfoObj);
-
-    }
-
-    //需要读取应用列表权限
+    //**安装列表**需要读取应用列表权限
     public static List<String> getAppList(Context context) {
         List<String> list = new ArrayList<>();
         PackageManager pm = context.getPackageManager();
@@ -261,7 +222,7 @@ public class APISecurity {
                 list.add(line.split(":")[1]);
             }
         } catch (IOException e) {
-            Log.e("runCommand", "e=" + e);
+            Log.e("runCommand", "e=" + e.getMessage());
         }
         return list;
     }
@@ -323,29 +284,5 @@ public class APISecurity {
         }
     }
 
-
-    /***
-     * 防代理
-     */
-    private boolean isProxy(Context context) {
-        String proxyAddress = "";
-        int proxyPort = 0;
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-            proxyAddress = System.getProperty("http.proxyHost");
-            String proxyPortString = System.getProperty("http.proxyPort");
-            proxyPort = Integer.parseInt((proxyPortString != null ? proxyPortString : "-1"));
-        } else {
-            proxyAddress = android.net.Proxy.getHost(context);
-            proxyPort = android.net.Proxy.getPort(context);
-        }
-        if (!TextUtils.isEmpty(proxyAddress) && proxyPort != -1) {
-            return true;
-        }
-        return false;
-    }
-// 忽视代理
-//    OkHttpClient okHttpClient = new OkHttpClient.Builder()
-//            .proxy(Proxy.NO_PROXY)
-//            .build();
 }
 

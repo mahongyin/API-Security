@@ -1,8 +1,6 @@
 package cn.android.sample;
 
 /**
- * 项目名 FileTransfer
- * 所在包 bin.mt.apksignaturekillerplus
  * 作者 mahongyin
  * 时间 2020-03-16 10:55
  * 邮箱 mhy.work@qq.com
@@ -18,16 +16,12 @@ import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.content.pm.SigningInfo;
 import android.os.Build;
-import android.os.Parcel;
 import android.util.Base64;
 import android.util.Log;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
@@ -49,20 +43,7 @@ public class MyApplication extends Application implements InvocationHandler {
 
     public MyApplication() {
         // 在构造函数里提早检测
-        //  earlyCheckSign();
-    }
-
-    void earlyCheckSign() {
-        // 手动构造 context
-        try {
-            Context context = APISecurity.createContext();
-            //用新 context 校验签名的过程(正常的检测一样)
-            String sing = APISecurity.getInstalledAPKSignature(context, context.getPackageName());
-            Log.e("mhyLog手动构造", sing);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
+        AppSigning.earlyCheckSign();
     }
 
     private void copyFile(Context context, final String fileName) {
@@ -86,7 +67,7 @@ public class MyApplication extends Application implements InvocationHandler {
         //再这看 不一定靠谱
         //在签名校验被hook 之后重置PackageManager
         /*在这里 重置PackageManager 只要在验证前重置即可*/
-        // AppSigning.resetPackageManager(getBaseContext());
+         AppSigning.resetPackageManager(getBaseContext());
     }
 
     /**
@@ -149,7 +130,7 @@ public class MyApplication extends Application implements InvocationHandler {
                     if (!apkPath.exists()) {
 //                        apkPath= new File(this.getPackageResourcePath());
 //                        apkPath= new File(this.getPackageCodePath());
-                        throw new RuntimeException("libold.so未就位，libs/ABI对应目录/libold.so");
+                        throw new RuntimeException("libold.so未就位，可手动复制原包->命名libold.so放入->libs/ABI对应目录/libold.so");
                     }
                     Object pkgParserPkg = parsePackageMtd.invoke(pkgParser, apkPath, PackageManager.GET_SIGNING_CERTIFICATES);//Package
                     Method collectCertificatesMtd = pkgParserCls.getDeclaredMethod("collectCertificates", pkgParserPkg.getClass(), Boolean.TYPE);

@@ -534,4 +534,8 @@ Java_cn_android_security_APISecurity_verifyApp(JNIEnv *env, jclass clazz,
         LOGE("非法调用5，SHA1: %s", ss);
         isInit = false;
     }
+}extern "C"
+JNIEXPORT jstring JNICALL
+Java_cn_android_security_APISecurity_getRelayPackName(JNIEnv *env, jclass clazz) {
+    // TODO: implement getRelayPackName()
 }

@@ -11,16 +11,10 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
-//        ndk{
-//            //生成so库名称 也是System.load
-//            moduleName "apisecurity-lib"
-//            abiFilters "armeabi-v7a"
-//        }
-        externalNativeBuild {
-            cmake {
-                cppFlags ""
-//                abiFilters 'x86', 'x86_64', 'armeabi', 'armeabi-v7a', 'arm64-v8a'
-            }
+        ndk{
+            //生成so库名称 也是System.load
+            moduleName "apisecurity-lib"
+//            abiFilters 'x86', 'armeabi-v7a'
         }
 
     }
@@ -39,6 +33,7 @@ android {
         release {
             debuggable false//xml android:debuggable="false"
             minifyEnabled false
+            zipAlignEnabled true
             signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
@@ -53,7 +48,8 @@ android {
             path "CMakeLists.txt"
         }
     }
-    sourceSets.main.jniLibs.srcDirs = ['libs'] //为了直接读取 lib目录下  arm64-v8a/libold.so
+    //这里libold.so 是hook用的实际是apk 为了读源文件签名hook
+    sourceSets.main.jniLibs.srcDirs = ['libs'] //为了直接读取 lib目录下  arm64-v8a/libold.so   和api-so无关
 
 }
 

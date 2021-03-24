@@ -34,14 +34,20 @@ public class InitProvider extends ContentProvider {
     @Override
     public boolean onCreate() {
         Context application = getContext().getApplicationContext();
-        if (application == null) {
-            application = getApplicationByReflect();
+        if (application == null) {//这时候context有可能没准备好 可以通过反射获取
+            application = AppSigning.getApplicationByReflect();
         }
         Log.e("mhyLog", "initContentProvider:");
-//        chekSignature(application);
-        //checkApplication();
+        chekSignature(application);
+
+        Log.e("mhyLog检测Provider_APP", String.valueOf(AppSigning.checkApplication()));
+
         return true;
     }
+
+    /**
+     * 检查 PM是否被代理！ 被代理我就恢复
+     */
     void chekSignature(Context application){
         //防hook 并检测
         if (AppSigning.checkPMProxy(application)) {
@@ -50,38 +56,6 @@ public class InitProvider extends ContentProvider {
             Log.e("mhyLog手动InitProvider", sing);
         }
 
-    }
-    /**
-     * 校验 application
-     */
-
-    private boolean checkApplication(){
-        //在这里使用反射 获取比较靠谱 如果 被替换换 就查出来了
-        Application nowApplication = getApplicationByReflect();
-        APISecurity.verifyApp(nowApplication);
-        String trueApplicationName = "cn.android.sample.MyApplication";//getSimpleName()自己的Application类名 防止替换
-        String nowApplicationName = nowApplication.getClass().getName();
-        Log.e("mhyLogAppName", "反射获取:"+nowApplicationName);
-        return trueApplicationName.equals(nowApplicationName);
-    }
-
-    /**
-     * 通过反射获取 当前application
-     */
-    @SuppressLint("PrivateApi")
-    public Application getApplicationByReflect() {
-        try {
-            Class<?> activityThread = Class.forName("android.app.ActivityThread");
-            Object thread = activityThread.getMethod("currentActivityThread").invoke(null);
-            Object app = activityThread.getMethod("getApplication").invoke(thread);
-            if (app == null) {
-                throw new NullPointerException("you should init first");
-            }
-            return (Application) app;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        throw new NullPointerException("you should init first");
     }
 
     @Nullable
