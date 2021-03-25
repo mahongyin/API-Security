@@ -18,10 +18,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         tv = findViewById(R.id.sample_text);
-
-        APISecurity.verify(getApplicationContext());
 
         if(APISecurity.init(getApplicationContext())){
             tv.setText("初始化ok");

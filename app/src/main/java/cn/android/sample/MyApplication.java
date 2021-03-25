@@ -88,7 +88,7 @@ public class MyApplication extends Application implements InvocationHandler {
 
             @Override
             public void onActivityResumed(Activity activity) {
-
+                APISecurity.detectedDynamicDebug();
             }
 
             @Override
