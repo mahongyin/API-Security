@@ -10,6 +10,8 @@ Android API Security(.so)，安卓APP/API安全加密so库，防二次打包，�
 #define SHA1 "a8e3d91a4f77dd7ccb8d43ee5046a4b6833f4785"
 //此处改为你的APP包名
 #define APP_PKG "cn.android.sample"
+//此处改为你的application全名  没有就是android.app.Application
+#define APPLICATION_NAME "android.app.Application"
 //此处填写API盐值
 #define API_SECRET "ABC"
 ```
