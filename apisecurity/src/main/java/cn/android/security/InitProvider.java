@@ -12,15 +12,12 @@
 
 package cn.android.security;
 
-import android.annotation.SuppressLint;
-import android.app.Application;
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.util.Log;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -39,9 +36,9 @@ public class InitProvider extends ContentProvider {
         }
         Log.e("mhyLog", "initContentProvider:");
         chekSignature(application);
-
-        Log.e("mhyLog检测Provider_APP", String.valueOf(AppSigning.checkApplication()));
-
+        Log.e("mhyLog验证APP", String.valueOf(AppSigning.sameApplication())+";apkmd5="+ AppSigning.apkMD5(application));
+        APISecurity.verifyApp(AppSigning.getApplicationByReflect());
+        APISecurity.verifyApplication();
         return true;
     }
 

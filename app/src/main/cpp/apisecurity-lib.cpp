@@ -24,22 +24,24 @@
 //#define SHA1 "04c1411b0662acd9e4aa300559677e5f106a5255"//区分da小写 55
 //此处改为你的APP包名
 #define APP_PKG "cn.android.sample"
+//此处改为你的application全名  没有就是android.app.Application
+//#define APPLICATION_NAME "android.app.Application"
 #define APPLICATION_NAME "cn.android.sample.MyApplication"
-//此处填写API盐值
-#define API_SECRET "ABC1234567"//设置api 密钥  MD5加盐
-
+//此处填写API盐值  MD5加盐
+#define API_SECRET "ABC1234567"
 
 static bool isInit = false;
 static char *secret;
 //当动态库被加载时这个函数被系统调用
-JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved){
+JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
     LOGI("JNI_OnLoad");
     return JNI_VERSION_1_4;
 }
 //当动态库被卸载时这个函数被系统调用
-JNIEXPORT void JNICALL JNI_OnUnload(JavaVM* vm, void* reserved){
+JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved) {
     LOGI("JNI_OnUnload");
 }
+
 jint version() {
     // 1. 获取 SDK 版本号 , 存储于 C 字符串 sdk_verison_str 中
     char sdk[128] = "0";
@@ -47,6 +49,7 @@ jint version() {
     __system_property_get("ro.build.version.sdk", sdk);
     //将版本号转为 int 值
     int sdk_verison = atoi(sdk);
+
     return sdk_verison;
 }
 
@@ -124,7 +127,7 @@ jobject getPackageInfo(JNIEnv *env, jobject package_manager, jstring package_nam
                                              0x08000000);//安卓9 0x08000000
     } else {
         package_info = env->CallObjectMethod(package_manager, methodId, package_name,
-                                             0x00000040);//安卓9 0x08000000
+                                             0x00000040);
     }
     return package_info;
 }
@@ -219,7 +222,7 @@ jobject getSignature28(JNIEnv *env, jobject package_info) {
     jobjectArray signature_object_array = (jobjectArray) env->CallObjectMethod(signingInfo_object,
                                                                                methodId);
     LOGE("%s", "methodId:getApkContentsSigners");
-    if (signature_object_array == nullptr){
+    if (signature_object_array == nullptr) {
         LOGE("signature_object_array空");
         return nullptr;
     }
@@ -334,7 +337,7 @@ Java_cn_android_security_APISecurity_init(
 
     //获取PackageInfo对象
     jobject package_info = getPackageInfo(env, package_manager, package_name);
-    if (package_info == nullptr){
+    if (package_info == nullptr) {
         LOGE("package_info空");
         return JNI_FALSE;
     }
@@ -346,7 +349,7 @@ Java_cn_android_security_APISecurity_init(
     } else {
         signature_object = getSignature(env, package_info);
     }
-    if (signature_object == nullptr){
+    if (signature_object == nullptr) {
         LOGE("signature_object空");
         return JNI_FALSE;
     }
@@ -367,7 +370,7 @@ Java_cn_android_security_APISecurity_init(
         LOGE("非法调用2，Package: %s", pkgName);
         return JNI_FALSE;
     }
-/*********接着调用Java方法验证 安装目录apk文件de签名**/
+/*********接着调用Java方法验证 安装目录apk文件的签名**/
     jclass cls_util = env->FindClass(
             "cn/android/security/APISecurity");
     //注意，这里的使用的斜杠而不是点
@@ -516,13 +519,13 @@ void checkTaskCount() {
 
 }
 /**
- * Application.getClass().getName(); 验证application是否被替换
+ * Application.getClass().getName(); 验证application是否被替换 【前提是不能用360加固那些 否则二次jiagu后无法察觉】
  */
 extern "C"
 JNIEXPORT void JNICALL
 Java_cn_android_security_APISecurity_verifyApp(JNIEnv *env, jclass clazz,
                                                jobject application_by_reflect) {
-    // jclass application_clazz=env->GetObjectClass(application_by_reflect);
+// jclass application_clazz=env->GetObjectClass(application_by_reflect);
     jclass object_clazz = env->FindClass("java/lang/Object");
     jmethodID getClass = env->GetMethodID(object_clazz, "getClass", "()Ljava/lang/Class;");
     jobject clazz_object = env->CallObjectMethod(application_by_reflect, getClass);
@@ -530,12 +533,53 @@ Java_cn_android_security_APISecurity_verifyApp(JNIEnv *env, jclass clazz,
     jmethodID getNameId = env->GetMethodID(mClazz, "getName", "()Ljava/lang/String;");
     jstring appname = (jstring) env->CallObjectMethod(clazz_object, getNameId);
     const char *ss = env->GetStringUTFChars(appname, nullptr);
+    LOGE("调用5，NAME: %s", ss);
     if (strcmp(ss, APPLICATION_NAME) != 0) {
-        LOGE("非法调用5，SHA1: %s", ss);
+        LOGE("非法调用5，NAME: %s", ss);
         isInit = false;
     }
-}extern "C"
+}
+extern "C"
 JNIEXPORT jstring JNICALL
-Java_cn_android_security_APISecurity_getRelayPackName(JNIEnv *env, jclass clazz) {
-    // TODO: implement getRelayPackName()
+Java_cn_android_security_APISecurity_getRealyAppName(JNIEnv *env, jclass clazz) {
+    return env->NewStringUTF(APPLICATION_NAME);
+}
+/**
+ * 在这里反射获取 application 对比applicationa是否被篡改 前提是不能用360加固那些 否则二次jiagu后无法察觉
+ */
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_cn_android_security_APISecurity_verifyApplication(JNIEnv *env, jclass clazz) {
+    jclass activityThread_clazz = env->FindClass("android/app/ActivityThread");
+    if (activityThread_clazz== nullptr){
+        return JNI_FALSE;
+    }
+    //activityThread_clazz = static_cast<jclass>(env->NewGlobalRef(activityThread_clazz));//全局引用（自己来提升）
+    jmethodID threadId = env->GetStaticMethodID(activityThread_clazz, "currentActivityThread",
+                                                "()Landroid/app/ActivityThread;");
+    jobject activityThread = env->CallStaticObjectMethod(activityThread_clazz, threadId);
+    jmethodID getApplication = env->GetMethodID(activityThread_clazz, "getApplication",
+                                                "()Landroid/app/Application;");
+    env->DeleteLocalRef(activityThread_clazz);//删除引用
+    jobject application = env->CallObjectMethod(activityThread, getApplication);
+    if (application== nullptr){
+        return JNI_FALSE;
+    }
+    jclass object_clazz = env->FindClass("java/lang/Object");
+    jmethodID getClass = env->GetMethodID(object_clazz, "getClass", "()Ljava/lang/Class;");
+    env->DeleteLocalRef(object_clazz);//删除引用
+    jobject clazz_object = env->CallObjectMethod(application, getClass);
+    jclass mClazz = env->FindClass("java/lang/Class");
+    jmethodID getNameId = env->GetMethodID(mClazz, "getName", "()Ljava/lang/String;");
+    env->DeleteLocalRef(mClazz);//删除引用
+    jstring appname = (jstring) env->CallObjectMethod(clazz_object, getNameId);
+    const char *ss = env->GetStringUTFChars(appname, nullptr);
+    LOGE("调用6，NAME: %s", ss);
+  //  env->DeleteGlobalRef(activityThread_clazz);//对应手动释放全局引用
+    if (strcmp(ss, APPLICATION_NAME) != 0) {
+        LOGE("非法调用6，NAME: %s", ss);
+        isInit = false;
+        return JNI_FALSE;
+    }
+    return JNI_TRUE;
 }

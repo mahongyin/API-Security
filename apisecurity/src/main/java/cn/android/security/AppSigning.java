@@ -80,7 +80,6 @@ public class AppSigning {
             IllegalAccessException,
             NoSuchFieldException,
             NullPointerException {
-
         // 反射获取 ActivityThread 的 currentActivityThread 获取 mainThread
         Class activityThreadClass = Class.forName("android.app.ActivityThread");
         Method currentActivityThreadMethod =
@@ -115,12 +114,12 @@ public class AppSigning {
     /**
      * 校验 application
      */
-    public static boolean checkApplication(){
+    public static boolean sameApplication(){
         //在这里使用反射 获取比较靠谱 如果 被替换换 就查出来了
         Application nowApplication = getApplicationByReflect();
-        APISecurity.verifyApp(nowApplication);
-        String trueApplicationName = "cn.android.sample.MyApplication";//getSimpleName()自己的Application类名 防止替换
-        String nowApplicationName = nowApplication.getClass().getName();
+        String trueApplicationName = APISecurity.getRealyAppName();
+        //getSimpleName()自己的Application类名 防止替换
+        String nowApplicationName = nowApplication.getClass().getName();//当前app类全名
         Log.e("mhyLogAppName", "反射获取:"+nowApplicationName);
         return trueApplicationName.equals(nowApplicationName);
     }
@@ -325,7 +324,6 @@ public class AppSigning {
                     Signature[] info = (Signature[]) packageInfoFld.get(pkgParserPkg);
                     return getSignatureString(info,AppSigning.SHA1);
                 }
-
 
             } else {
                 pkgParserCt = pkgParserCls.getConstructor(typeArgs);

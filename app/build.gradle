@@ -26,6 +26,12 @@ android {
             storeFile file("test.keystore")
             storePassword '123456'
         }
+        debug {//非目标签名 用于验证
+            keyAlias 'androidkey'
+            keyPassword 'android'
+            storeFile file("androidkey.keystore")
+            storePassword 'android'
+        }
 
     }
 
@@ -39,7 +45,7 @@ android {
         }
         debug{
             debuggable true
-            signingConfig signingConfigs.release
+            signingConfig signingConfigs.debug
         }
     }
 

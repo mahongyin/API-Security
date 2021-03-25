@@ -46,8 +46,13 @@ public class APISecurity {
      * @param str
      */
     public static native String sign(String str);
-    public static native String getRelayPackName();
+
+    public static native String getRealyAppName();
+
     public static native void verifyApp(Application applicationByReflect);
+
+    public static native boolean verifyApplication();
+
     public static native boolean init(Context context);
 
     /**
@@ -62,7 +67,7 @@ public class APISecurity {
 //        Log.e("mhyLog", "hash:" + AppSigning.getSignatureHash(context));
 //        Log.e("mhyLog", "sha1:" + getSignSha1(context));
         //runCommand();
-       // Log.e("mhyLog包文件", "签名:"+getApkSignatures(context, context.getPackageName()));
+        // Log.e("mhyLog包文件", "签名:"+getApkSignatures(context, context.getPackageName()));
         //Log.e("mhyLog已安装", "签名："+getInstalledAPKSignature(context, context.getPackageName()));
         //通过获取其他应用的签名 如果一样那么被hook了
     }
@@ -79,7 +84,7 @@ public class APISecurity {
                 if (appInfo == null || appInfo.signingInfo == null)
                     return "";
                 return AppSigning.getSignatureString(appInfo.signingInfo.getApkContentsSigners(), AppSigning.SHA1);
-            }else {
+            } else {
                 PackageInfo appInfo = pm.getPackageInfo(packageName.trim(), PackageManager.GET_SIGNATURES);
                 if (appInfo == null || appInfo.signatures == null)
                     return "";
@@ -105,19 +110,19 @@ public class APISecurity {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 //TODO 这里获取的signingInfo 为空 猜想是flag不对 但看源码好像 目前只能使【GET_SIGNATURES 对应signatures】
                 PackageInfo packageInfo = pm.getPackageArchiveInfo(path, PackageManager.GET_SIGNING_CERTIFICATES);
-                if (packageInfo != null&&packageInfo.signingInfo!=null) {
+                if (packageInfo != null && packageInfo.signingInfo != null) {
                     Signature[] signatures = packageInfo.signingInfo.getApkContentsSigners();
-                     return AppSigning.getSignatureString(signatures, AppSigning.SHA1);
-                }else {
-                  return AppSigning.getAPKSignatures(path);
+                    return AppSigning.getSignatureString(signatures, AppSigning.SHA1);
+                } else {
+                    return AppSigning.getAPKSignatures(path);
                 }
                 //如果获取失败就用下面方法喽
-            }else {
+            } else {
                 PackageInfo packageInfo = pm.getPackageArchiveInfo(path, PackageManager.GET_SIGNATURES);
                 if (packageInfo != null) {
                     Signature[] signatures = packageInfo.signatures;
                     return AppSigning.getSignatureString(signatures, AppSigning.SHA1);
-                }else {
+                } else {
                     return AppSigning.showUninstallAPKSignatures(path);
                 }
             }
