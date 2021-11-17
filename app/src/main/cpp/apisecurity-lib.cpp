@@ -71,6 +71,7 @@ jint getDeviceVersion(JNIEnv *env) {
 //    LOGD("printByte:%s", hexA);
 //}
 
+//签名验证
 char *digest(JNIEnv *env, const char *algorithm, jbyteArray cert_byte) {
     jclass message_digest_class = env->FindClass("java/security/MessageDigest");
     jmethodID methodId = env->GetStaticMethodID(message_digest_class, "getInstance",

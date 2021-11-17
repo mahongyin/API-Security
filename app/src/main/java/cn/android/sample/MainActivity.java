@@ -32,7 +32,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 //API签名字符串
                 String aptStr="123456";
-                tv.setText("Sign:" + APISecurity.sign(aptStr));
+                tv.setText("Sign加盐:" + APISecurity.sign(aptStr));
             }
         });
 

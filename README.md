@@ -73,6 +73,14 @@ Android API Security(.so)，安卓APP/API安全加密so库，防二次打包，�
 ###2
 签名验证   application名验证   防护签名校验  Jni验证 
 
+虚拟机/模拟器检查  网络代理/VPN/SSL证书验证
+
+混淆 加固
+
+https://juejin.cn/post/7024695135535366151
+
+https://juejin.cn/post/7001409376745422885
+
 
 
 ![jni属性签名](jni属性签名.jpg)
@@ -114,18 +122,18 @@ JNIEXPORT void JNICALL Java_com_test_JniTest_accessField
     jfieldID fid = (*env)->GetFieldID(env, clz, "str", "Ljava/lang/String;");
     //通过属性ID拿到属性的值
     jstring jstr = (*env)->GetObjectField(env, jobj, fid);
-
+    
     //通过Java字符串拿到C字符串，第三个参数是一个出参，用来告诉我们GetStringUTFChars内部是否复制了一份字符串
     //如果没有复制，那么出参为isCopy，这时候就不能修改字符串的值了，因为Java中常量池中的字符串是不允许修改的（但是jstr可以指向另外一个字符串）
     char* cstr = (*env)->GetStringUTFChars(env, jstr, NULL);
     //在C层修改这个属性的值
     char res[20] = "I love you : ";
     strcat(res, cstr);
-
+    
     //重新生成Java的字符串，并且设置给对应的属性
     jstring jstr_new = (*env)->NewStringUTF(env, res);
     (*env)->SetObjectField(env, jobj, fid, jstr_new);
-
+    
     //最后释放资源，通知垃圾回收器来回收
     //良好的习惯就是，每次GetStringUTFChars，结束的时候都有一个ReleaseStringUTFChars与之呼应
     (*env)->ReleaseStringUTFChars(env, jstr, cstr);
@@ -218,17 +226,17 @@ JNIEXPORT void JNICALL Java_com_test_JniTest_accessStaticMethod
 
     //调用java的静态方法，拿到返回值
     jstring jstr = (*env)->CallStaticObjectMethod(env, clz, mid);
-
+    
     //把拿到的Java字符串转换为C的字符串
     char* cstr= (*env)->GetStringUTFChars(env, jstr, NULL);
-
+    
     //后续操作，产生以UUID为文件名的文件
     char fielName[100];
     sprintf(fielName, "D:\\%s.txt", cstr);
     FILE* f = fopen(fielName, "w");
     fputs(cstr, f);
     fclose(f);
-
+    
     printf("output from C : File had saved", jstr);
 }
 最后在Java中测试：
@@ -284,7 +292,7 @@ JNIEXPORT void JNICALL Java_com_test_JniTest_accessNonvirtualMethod
     //拿到父类的类，以及speek的方法id
     jclass clz_human = (*env)->FindClass(env, "com/test/Human");
     jmethodID mid = (*env)->GetMethodID(env, clz_human, "speek", "()V");
-
+    
     //调用自己的speek实现
     (*env)->CallVoidMethod(env, man, mid);
     //调用父类的speek实现
@@ -323,15 +331,15 @@ JNIEXPORT jlong JNICALL Java_com_test_JniTest_accessConstructor
     //构造方法的函数名的格式是：<init>
     //不能写类名，因为构造方法函数名都一样区分不了，只能通过参数列表（签名）区分
     jmethodID mid_Date = (*env)->GetMethodID(env, clz_date, "<init>", "()V");;
-
+    
     //调用构造函数
     jobject date = (*env)->NewObject(env, clz_date, mid_Date);
-
+    
     //注意签名，返回值long的属性签名是J
     jmethodID mid_getTime= (*env)->GetMethodID(env, clz_date, "getTime", "()J");
     //调用getTime方法
     jlong jtime = (*env)->CallLongMethod(env, date, mid_getTime);
-
+    
     return jtime;
 }
 最后在Java中测试：
@@ -395,20 +403,20 @@ JNIEXPORT jstring JNICALL Java_com_test_JniTest_testChineseOut
     //需要返回的字符串
     char* c_str = "我爱你";
     //jstring j_str = (*env)->NewStringUTF(env, c_str);
-
+    
     //通过调用构造方法String string = new String(byte[], charsetName);来解决乱码问题
-
+    
     //0.找到String类
     jclass clz_String =  (*env)->FindClass(env, "java/lang/String");
     jmethodID mid = (*env)->GetMethodID(env, clz_String, "<init>", "([BLjava/lang/String;)V");
-
+    
     //准备new String的参数：byte数组以及字符集
     //1.创建字节数组，并且将C的字符串拷贝进去
     jbyteArray j_byteArray = (*env)->NewByteArray(env, strlen(c_str));
     (*env)->SetByteArrayRegion(env, j_byteArray, 0, strlen(c_str), c_str);
     //2.创建字符集的参数，这里用Windows的more字符集GB2312
     jstring charsetName = (*env)->NewStringUTF(env, "GB2312");
-
+    
     //调用
     jstring j_new_str = (*env)->NewObject(env, clz_String, mid, j_byteArray, charsetName);
     return j_new_str;

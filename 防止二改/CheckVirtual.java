@@ -154,7 +154,7 @@ public class CheckVirtual {
     }
 
     /**
-     * Return whether device is emulator.
+     * Return whether device is emulator.模拟器
      *
      * @return {@code true}: yes<br>{@code false}: no
      */
