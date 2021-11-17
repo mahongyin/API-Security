@@ -52,10 +52,10 @@ public class NetProxy {
      * 网络是否代理
      */
     private static boolean isProxy(Context ctx) {
-        final boolean IS_ICS_OR_LATER = Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH;
+        final boolean iSICSORLATER = Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH;
         String proxyAddress;
         int proxyPort;
-        if (IS_ICS_OR_LATER) {
+        if (iSICSORLATER) {
             proxyAddress = System.getProperty("http.proxyHost");
             String protStr = System.getProperty("http.proxyPort");
             proxyPort = Integer.parseInt((protStr != null ? protStr : "-1"));

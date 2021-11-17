@@ -8,14 +8,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.security.MessageDigest;
 
 /**
  * @author mahongyin
- * @Project Android-API-Security-master
- * @Package cn.android.sample
- * @data 2020-04-11 20:25
- * @CopyRight mhy.work@qq.com
- * @description:
  * raw、assets（项目内的文件）
  * getFilesDir()、getCacheDir()（app私有储存文件目录，app被卸载时文件被删除，不用考虑6.0及以上权限限制）
  * Environment.getExternalStorageDirectory()（外部储存目录，其他应用可以访问，文件不会因为app被卸载而删除，）
@@ -88,6 +84,34 @@ class FileUtils {
             out.close();
         } catch (Exception e) {
         }
+    }
+
+    /**
+     * 小写  32位
+     * 验证 apk 文件一致性！  需要同一versionCode
+     */
+    public static String getMD5(File file) {
+        InputStream in = null;
+        try {
+            in = new FileInputStream(file);
+            StringBuffer md5 = new StringBuffer();
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            byte[] dataBytes = new byte[1024];
+
+            int nread = 0;
+            while ((nread = in.read(dataBytes)) != -1) {
+                md.update(dataBytes, 0, nread);
+            }
+            byte[] mdbytes = md.digest();
+
+            for (int i = 0; i < mdbytes.length; i++) {
+                md5.append(Integer.toString((mdbytes[i] & 0xff) + 0x100, 16).substring(1));
+            }
+            return md5.toString().toLowerCase();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
 

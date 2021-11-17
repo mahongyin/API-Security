@@ -15,7 +15,7 @@ Android API Security(.so)，安卓APP/API安全加密so库，防二次打包，�
 //此处填写API盐值
 #define API_SECRET "ABC"
 ```
-
+![](https://upload-images.jianshu.io/upload_images/8850933-83d778c12592d8da.png?imageMogr2/auto-orient/strip|imageView2/2/w/593/format/webp)
 * 第二步：修改 app/build.gradle 文件中的签名(测试需要，非必须)
 
 ```groovy
@@ -65,6 +65,13 @@ Android API Security(.so)，安卓APP/API安全加密so库，防二次打包，�
  1.验证签名是否符合自己预设
  2.验证包名
  3验证apk源文件签名信息
+
+###1
+加盐加密：明文+盐值->md5值   明文+盐值->md5值
+<比较> 两个md5
+
+###2
+签名验证   application名验证   防护签名校验  Jni验证 
 
 
 

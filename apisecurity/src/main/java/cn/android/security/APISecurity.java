@@ -1,38 +1,26 @@
 package cn.android.security;
 
-import android.annotation.SuppressLint;
 import android.app.Application;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
+import android.content.pm.SigningInfo;
 import android.os.Build;
 import android.os.Debug;
 import android.text.TextUtils;
-import android.util.DisplayMetrics;
 import android.util.Log;
 
+import androidx.annotation.Nullable;
+
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateEncodingException;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 public class APISecurity {
@@ -95,6 +83,59 @@ public class APISecurity {
         }
         return "";
     }
+    /**
+     * Return the application's signature from application
+     */
+    public static Signature[] getAppSignatures(Context app,final String packageName) {
+        if (TextUtils.isEmpty(packageName)) return null;
+        try {
+            PackageManager pm = app.getPackageManager();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                PackageInfo pi = pm.getPackageInfo(packageName, PackageManager.GET_SIGNING_CERTIFICATES);
+                if (pi == null) return null;
+
+                SigningInfo signingInfo = pi.signingInfo;
+                if (signingInfo.hasMultipleSigners()) {
+                    return signingInfo.getApkContentsSigners();
+                } else {
+                    return signingInfo.getSigningCertificateHistory();
+                }
+            } else {
+                PackageInfo pi = pm.getPackageInfo(packageName, PackageManager.GET_SIGNATURES);
+                if (pi == null) return null;
+
+                return pi.signatures;
+            }
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * Return the application's signature from apk file
+     */
+    @Nullable
+    public static Signature[] getAppSignatures(Context app,final File file) {
+        if (file == null) return null;
+        PackageManager pm = app.getPackageManager();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            PackageInfo pi = pm.getPackageArchiveInfo(file.getAbsolutePath(), PackageManager.GET_SIGNING_CERTIFICATES);
+            if (pi == null) return null;
+
+            SigningInfo signingInfo = pi.signingInfo;
+            if (signingInfo.hasMultipleSigners()) {
+                return signingInfo.getApkContentsSigners();
+            } else {
+                return signingInfo.getSigningCertificateHistory();
+            }
+        } else {
+            PackageInfo pi = pm.getPackageArchiveInfo(file.getAbsolutePath(), PackageManager.GET_SIGNATURES);
+            if (pi == null) return null;
+
+            return pi.signatures;
+        }
+    }
 
     /**
      * 防破签名 2
@@ -110,6 +151,7 @@ public class APISecurity {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 //TODO 这里获取的signingInfo 为空 猜想是flag不对 但看源码好像 目前只能使【GET_SIGNATURES 对应signatures】
                 PackageInfo packageInfo = pm.getPackageArchiveInfo(path, PackageManager.GET_SIGNING_CERTIFICATES);
+//                PackageInfo packageInfo = pm.getPackageInfo(packageName, PackageManager.GET_SIGNING_CERTIFICATES);;
                 if (packageInfo != null && packageInfo.signingInfo != null) {
                     Signature[] signatures = packageInfo.signingInfo.getApkContentsSigners();
                     return AppSigning.getSignatureString(signatures, AppSigning.SHA1);

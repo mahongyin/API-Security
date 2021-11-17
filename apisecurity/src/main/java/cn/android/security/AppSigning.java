@@ -150,7 +150,7 @@ public class AppSigning {
         String fingerprint = "error!";
         if (sigs.length > 0) {
             for (Signature sig : sigs) {
-//                Log.e("mhyLog", "Signature64:" + Base64.encodeToString(sig.toCharsString().getBytes(), Base64.DEFAULT));
+               //Log.e("mhyLog", "Signature64:" + Base64.encodeToString(sig.toCharsString().getBytes(), Base64.DEFAULT));
                 Log.e("mhyLog", "SignatureHash:" + sig.toCharsString().hashCode());
             }
             byte[] hexBytes = sigs[0].toByteArray();
@@ -301,7 +301,7 @@ public class AppSigning {
                 Method pkgParser_parsePackageMtd = pkgParserCls.getDeclaredMethod("parsePackage", File.class, int.class);
                 Object pkgParserPkg = pkgParser_parsePackageMtd.invoke(pkgParser, new File(apkPath), PackageManager.GET_SIGNATURES);
 
-                if (Build.VERSION.SDK_INT >= 28){
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P){
                     Method pkgParser_collectCertificatesMtd = pkgParserCls.getDeclaredMethod("collectCertificates", pkgParserPkg.getClass(), Boolean.TYPE);//true skipVerify
                     pkgParser_collectCertificatesMtd.invoke(pkgParser, pkgParserPkg, Build.VERSION.SDK_INT >= Build.VERSION_CODES.P);
 

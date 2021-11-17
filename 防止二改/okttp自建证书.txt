@@ -1,0 +1,36 @@
+  private fun initOkhttp() {
+        val sslParams: HttpsUtils.SSLParams = HttpsUtils.getSslSocketFactory(null, null, null)
+        val cookieJar = CookieJarImpl(PersistentCookieStore(applicationContext)) //持久化cookie
+        val ps = object : ProxySelector() {
+            override fun select(uri: URI?): MutableList<Proxy>? {
+                val pl = getDefault().select(uri)
+                myLog(pl[0].toString())
+                return pl //null 不要任何代理
+            }
+
+            override fun connectFailed(uri: URI?, sa: SocketAddress?, ioe: IOException?) {
+
+            }
+        }
+        val okHttpClient: OkHttpClient =
+            OkHttpClient.Builder().addInterceptor(LoggerInterceptor("OkHttp", true))
+                .sslSocketFactory(sslParams.sSLSocketFactory, sslParams.trustManager)
+//                .hostnameVerifier(hnv)
+                .connectTimeout(10000L, TimeUnit.MILLISECONDS)
+                .readTimeout(10000L, TimeUnit.MILLISECONDS)
+                .cookieJar(cookieJar) //其他配置
+               // .proxySelector(ps)
+//                .proxy(Proxy.NO_PROXY)
+                .build()
+        OkHttpUtils.initClient(okHttpClient)
+    }
+    //验证域名
+    var hnv = HostnameVerifier { hostname, session ->
+        if ("cctv.com".equals(hostname)) {
+            return@HostnameVerifier true
+        } else {
+            val hv: HostnameVerifier = HttpsURLConnection.getDefaultHostnameVerifier()
+            return@HostnameVerifier hv.verify("cctv.com", session)
+        }
+    }
+
