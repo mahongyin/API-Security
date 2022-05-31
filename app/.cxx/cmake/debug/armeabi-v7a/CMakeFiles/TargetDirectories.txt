@@ -1,3 +1,0 @@
-L:/AProject/Mahy/API-Security/app/.cxx/cmake/debug/armeabi-v7a/CMakeFiles/apisecurity-lib.dir
-L:/AProject/Mahy/API-Security/app/.cxx/cmake/debug/armeabi-v7a/CMakeFiles/edit_cache.dir
-L:/AProject/Mahy/API-Security/app/.cxx/cmake/debug/armeabi-v7a/CMakeFiles/rebuild_cache.dir

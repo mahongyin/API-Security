@@ -1,7 +1,0 @@
-[
-{
-  "directory": "L:/AProject/Mahy/API-Security/app/.cxx/cmake/debug/x86_64",
-  "command": "D:\\android-sdk-windows\\ndk\\20.1.5948944\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe --target=x86_64-none-linux-android21 --gcc-toolchain=D:/android-sdk-windows/ndk/20.1.5948944/toolchains/llvm/prebuilt/windows-x86_64 --sysroot=D:/android-sdk-windows/ndk/20.1.5948944/toolchains/llvm/prebuilt/windows-x86_64/sysroot  -Dapisecurity_lib_EXPORTS  -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -fno-addrsig -Wa,--noexecstack -Wformat -Werror=format-security   -O0 -fno-limit-debug-info  -fPIC   -o CMakeFiles\\apisecurity-lib.dir\\src\\main\\cpp\\apisecurity-lib.cpp.o -c L:\\AProject\\Mahy\\API-Security\\app\\src\\main\\cpp\\apisecurity-lib.cpp",
-  "file": "L:/AProject/Mahy/API-Security/app/src/main/cpp/apisecurity-lib.cpp"
-}
-]
