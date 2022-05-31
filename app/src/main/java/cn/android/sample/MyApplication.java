@@ -47,10 +47,10 @@ public class MyApplication extends Application implements InvocationHandler {
         // 在构造函数里提早检测
         AppSigning.earlyCheckSign();
     }
-
-    private void copyFile(Context context, final String fileName) {
+//源apk 文件签名hook用
+    private void copyFile(Context context, final String libName) {
         //data/app/packagename/lib/arm64/libold.so  将源文件搞到此目录
-        String libPath = context.getApplicationInfo().nativeLibraryDir + File.separator + fileName;
+        String libPath = context.getApplicationInfo().nativeLibraryDir + File.separator + libName;
         apkPath = new File(libPath);
         Log.e("mhyLog", "File:" + libPath);
     }

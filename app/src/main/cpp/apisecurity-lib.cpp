@@ -365,9 +365,7 @@ Java_cn_android_security_APISecurity_init(
     }
 //包名验证
     const char *pkgName = env->GetStringUTFChars(package_name, nullptr);
-    if (strcmp(pkgName, APP_PKG) == 0) {
-        secret = API_SECRET;//包名匹配 拿取api
-    } else {
+    if (strcmp(pkgName, APP_PKG) != 0) {
         LOGE("非法调用2，Package: %s", pkgName);
         return JNI_FALSE;
     }
@@ -404,6 +402,7 @@ Java_cn_android_security_APISecurity_init(
         return JNI_FALSE;
     }
     isInit = true;
+    secret = API_SECRET;//拿取api
     LOGI("初始化成功！");
     return JNI_TRUE;
 }

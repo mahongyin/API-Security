@@ -56,7 +56,7 @@ android {
         }
     }
     //这里libold.so 是hook用的实际是apk 为了读源文件签名hook
-    sourceSets.main.jniLibs.srcDirs = ['libs'] //为了直接读取 lib目录下  arm64-v8a/libold.so   和api-so无关
+    sourceSets.main.jniLibs.srcDirs = ['libs'] //为了直接读取 lib目录下  arm64-v8a/libold.so=apk   和api-so无关
 
 }
 

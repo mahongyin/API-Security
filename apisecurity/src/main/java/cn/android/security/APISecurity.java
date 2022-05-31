@@ -151,7 +151,7 @@ public class APISecurity {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 //TODO 这里获取的signingInfo 为空 猜想是flag不对 但看源码好像 目前只能使【GET_SIGNATURES 对应signatures】
                 PackageInfo packageInfo = pm.getPackageArchiveInfo(path, PackageManager.GET_SIGNING_CERTIFICATES);
-//                PackageInfo packageInfo = pm.getPackageInfo(packageName, PackageManager.GET_SIGNING_CERTIFICATES);;
+//                PackageInfo packageInfo = pm.getPackageInfo(packageName, PackageManager.GET_SIGNING_CERTIFICATES);
                 if (packageInfo != null && packageInfo.signingInfo != null) {
                     Signature[] signatures = packageInfo.signingInfo.getApkContentsSigners();
                     return AppSigning.getSignatureString(signatures, AppSigning.SHA1);
